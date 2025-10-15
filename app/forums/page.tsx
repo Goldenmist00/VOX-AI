@@ -30,6 +30,7 @@ import {
   X
 } from "lucide-react"
 import CommentSystem from "../components/CommentSystem"
+import DebateViewModal from "../components/DebateViewModal"
 
 export default function ForumsPage() {
   const [activeFilter, setActiveFilter] = useState("trending")
@@ -103,8 +104,6 @@ export default function ForumsPage() {
 
   const handleViewDebate = (debateId: number) => {
     setSelectedDebate(debateId)
-    // In a real app, this would navigate to the debate detail page
-    console.log(`Viewing debate ${debateId}`)
   }
 
   const filteredDebates = debates.filter(debate => 
@@ -577,6 +576,13 @@ export default function ForumsPage() {
           </div>
         </div>
       )}
+
+      {/* Debate View Modal */}
+      <DebateViewModal
+        debate={selectedDebate ? debates.find(d => d.id === selectedDebate) || null : null}
+        isOpen={selectedDebate !== null}
+        onClose={() => setSelectedDebate(null)}
+      />
     </div>
   )
 }
