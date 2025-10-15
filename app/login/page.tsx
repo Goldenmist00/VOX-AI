@@ -12,8 +12,6 @@ import {
   Lock,
   ArrowRight,
   Shield,
-  Users,
-  Building,
   CheckCircle,
   AlertCircle,
 } from "lucide-react"
@@ -133,40 +131,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* User Type Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-3">
-              I am a:
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setUserType("citizen")}
-                className={`p-4 border rounded-lg text-sm font-medium transition-all duration-200 ${
-                  userType === "citizen"
-                    ? "border-emerald-400 bg-emerald-400/10 text-emerald-400"
-                    : "border-gray-600 bg-gray-900/50 text-gray-400 hover:border-gray-500"
-                }`}
-              >
-                <Users className="w-5 h-5 mx-auto mb-2" />
-                <div>Citizen</div>
-                <div className="text-xs text-gray-400 mt-1">Individual User</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUserType("organization")}
-                className={`p-4 border rounded-lg text-sm font-medium transition-all duration-200 ${
-                  userType === "organization"
-                    ? "border-blue-400 bg-blue-400/10 text-blue-400"
-                    : "border-gray-600 bg-gray-900/50 text-gray-400 hover:border-gray-500"
-                }`}
-              >
-                <Building className="w-5 h-5 mx-auto mb-2" />
-                <div>Organization</div>
-                <div className="text-xs text-gray-400 mt-1">NGO / Policymaker</div>
-              </button>
-            </div>
-          </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
