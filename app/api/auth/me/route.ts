@@ -9,6 +9,9 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB()
 
+    // Debug: Log all cookies
+    console.log('All cookies received:', req.cookies.getAll().map(c => `${c.name}=${c.value ? 'exists' : 'empty'}`))
+    
     // Get token from cookies
     const token = req.cookies.get('auth-token')?.value
     console.log('Auth token from cookies:', token ? 'Token exists' : 'No token')
