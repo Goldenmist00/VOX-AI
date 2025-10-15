@@ -8,13 +8,9 @@ import {
   LogIn,
   MessageSquare,
   Network,
-  ShieldCheck,
   ThumbsDown,
   ThumbsUp,
-  Users,
-  Home,
-  Upload,
-  LayoutDashboard
+  Users
 } from "lucide-react"
 import { VoxAiSvgWordmark } from "@/components/vox-ai-svg-wordmark"
 
@@ -274,15 +270,15 @@ export default function VoxLanding() {
             </a>
           </div>
           <a
-            href="#login"
+            href="/login"
             className="group relative cursor-pointer"
-            aria-label="NGO/Policymaker Login"
-            title="NGO/Policymaker Login"
+            aria-label="Login"
+            title="Login"
           >
             <div className="absolute inset-0 border border-emerald-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
             <div className="relative border border-emerald-400/60 bg-transparent text-white font-medium px-4 py-2 text-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-              <LogIn className="w-4 h-4 text-white" />
-              <span>NGO/Policymaker Login</span>
+              <LogIn className="w-4 h-4 text-emerald-400" />
+              <span>Login</span>
             </div>
           </a>
         </div>
@@ -310,32 +306,13 @@ export default function VoxLanding() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
-            <a href="/forums" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Join Debate">
+          <div className="flex justify-center">
+            <a href="/login" className="group relative cursor-pointer w-full sm:w-auto max-w-sm" aria-label="Join Debate">
               <div className="absolute inset-0 border border-blue-500/40 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
-              <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-6 sm:px-10 py-3 sm:py-4 text-base sm:text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <MessageSquare className="w-5 h-5 text-white" />
+              <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
+                <MessageSquare className="w-5 h-5" />
                 <span>Join Debate</span>
-              </div>
-            </a>
-
-            <a href="/upload" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Upload Chat">
-              <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
-              <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-3 sm:py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <FileUp className="w-5 h-5 text-white" />
-                <span>Upload Chat</span>
-              </div>
-            </a>
-
-            <a
-              href="#login"
-              className="group relative cursor-pointer w-full sm:w-auto"
-              aria-label="NGO/Policymaker Login"
-            >
-              <div className="absolute inset-0 border border-gray-600 bg-gray-900/20 transition-all duration-300 group-hover:border-white/80 group-hover:shadow-lg group-hover:shadow-white/10" />
-              <div className="relative border border-gray-400 bg-transparent text-white font-medium px-6 sm:px-8 py-3 sm:py-4 text-base transition-all duration-300 group-hover:border-white group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-white" />
-                <span>NGO/Policymaker Login</span>
+                <ArrowRight className="w-4 h-4" />
               </div>
             </a>
           </div>
@@ -481,27 +458,27 @@ export default function VoxLanding() {
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to explore the public voice?</h2>
           <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-10">
-            Start participating or dive into insights. Subtle micro-interactions guide you through.
+            Create an account to start participating in debates and access powerful insights.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
-            <a href="#join" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Start Participating">
+            <a href="/login" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Start Participating">
               <div className="absolute inset-0 border-2 border-blue-500/50 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
               <div className="relative border-2 border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <span>Start Participating</span>
-                <ArrowRight className="w-5 h-5 text-white" />
+                <ArrowRight className="w-5 h-5" />
               </div>
             </a>
 
             <a
-              href="#insights"
+              href="/signup"
               className="group relative cursor-pointer w-full sm:w-auto"
-              aria-label="Explore Insights"
+              aria-label="Create Account"
             >
               <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
               <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <span>Explore Insights</span>
-                <ArrowRight className="w-5 h-5 text-white" />
+                <span>Create Account</span>
+                <ArrowRight className="w-5 h-5 text-emerald-300" />
               </div>
             </a>
           </div>
