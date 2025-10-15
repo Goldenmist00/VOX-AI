@@ -48,7 +48,7 @@ export default function LoginPage() {
     const result = await login(formData.email, formData.password)
     
     if (result.success) {
-      // Redirect based on user role
+      // Redirect based on user role - the user state should be updated by now
       if (canAccessDashboard) {
         router.push('/dashboard')
       } else {
