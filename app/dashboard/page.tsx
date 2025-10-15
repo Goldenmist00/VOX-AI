@@ -33,7 +33,10 @@ import {
   Brain,
   Globe,
   Users2,
-  Briefcase
+  Briefcase,
+  Home,
+  Upload,
+  LayoutDashboard
 } from "lucide-react"
 
 export default function DashboardPage() {
@@ -257,25 +260,37 @@ export default function DashboardPage() {
                 <span className="text-xl font-bold text-blue-400">AI</span>
               </div>
             </a>
-            <div className="hidden md:flex items-center gap-6">
-              <a href="/" className="text-gray-400 hover:text-white transition-colors">Home</a>
-              <a href="/forums" className="text-gray-400 hover:text-white transition-colors">Forums</a>
-              <a href="/upload" className="text-gray-400 hover:text-white transition-colors">Upload</a>
-              <a href="/dashboard" className="text-blue-400 font-medium">Dashboard</a>
+            <div className="hidden md:flex items-center gap-8">
+              <a href="/" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                <Home className="w-4 h-4" />
+                <span>Home</span>
+              </a>
+              <a href="/forums" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                <MessageSquare className="w-4 h-4" />
+                <span>Forums</span>
+              </a>
+              <a href="/upload" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                <Upload className="w-4 h-4" />
+                <span>Upload</span>
+              </a>
+              <a href="/dashboard" className="flex items-center gap-2 text-blue-400 font-medium px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard</span>
+              </a>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <Bell className="w-5 h-5" />
+              <Bell className="w-5 h-5 text-white" />
             </button>
             <div className="relative">
               <button 
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
               >
-                <User className="w-5 h-5" />
+                <User className="w-5 h-5 text-white" />
                 <span className="text-sm capitalize">{userRole}</span>
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4 text-white" />
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg">
@@ -343,7 +358,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               <div className="bg-gray-950/60 border border-gray-700 p-6 hover:border-blue-400/50 transition-all duration-300">
                 <div className="flex items-center gap-3 mb-3">
-                  <Globe className="w-6 h-6 text-blue-400" />
+                  <Globe className="w-6 h-6 text-white" />
                   <h3 className="font-bold">Total Issues</h3>
                 </div>
                 <div className="text-3xl font-bold text-blue-400">{analytics.totalIssues}</div>
@@ -352,7 +367,7 @@ export default function DashboardPage() {
 
               <div className="bg-gray-950/60 border border-gray-700 p-6 hover:border-emerald-400/50 transition-all duration-300">
                 <div className="flex items-center gap-3 mb-3">
-                  <Activity className="w-6 h-6 text-emerald-400" />
+                  <Activity className="w-6 h-6 text-white" />
                   <h3 className="font-bold">Active {userRole === "ngo" ? "Campaigns" : "Policies"}</h3>
                 </div>
                 <div className="text-3xl font-bold text-emerald-400">{analytics.activeCampaigns}</div>
@@ -361,7 +376,7 @@ export default function DashboardPage() {
 
               <div className="bg-gray-950/60 border border-gray-700 p-6 hover:border-yellow-400/50 transition-all duration-300">
                 <div className="flex items-center gap-3 mb-3">
-                  <TrendingUp className="w-6 h-6 text-yellow-400" />
+                  <TrendingUp className="w-6 h-6 text-white" />
                   <h3 className="font-bold">Avg Consensus</h3>
                 </div>
                 <div className="text-3xl font-bold text-yellow-400">{analytics.avgConsensus}%</div>

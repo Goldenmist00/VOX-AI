@@ -12,6 +12,9 @@ import {
   ThumbsDown,
   ThumbsUp,
   Users,
+  Home,
+  Upload,
+  LayoutDashboard
 } from "lucide-react"
 import { VoxAiSvgWordmark } from "@/components/vox-ai-svg-wordmark"
 
@@ -254,15 +257,18 @@ export default function VoxLanding() {
             </div>
           </a>
           <div className="hidden md:flex items-center gap-8">
-            <a href="/forums" className="text-gray-400 hover:text-white transition-colors relative group">
+            <a href="/forums" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+              <MessageSquare className="w-4 h-4" />
               <span>Forums</span>
               <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-emerald-400/20 transition-all duration-300 group-hover:w-full" />
             </a>
-            <a href="#how" className="text-gray-400 hover:text-white transition-colors relative group">
+            <a href="#how" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+              <BarChart3 className="w-4 h-4" />
               <span>How it works</span>
               <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full" />
             </a>
-            <a href="#cta" className="text-gray-400 hover:text-white transition-colors relative group">
+            <a href="#cta" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+              <ArrowRight className="w-4 h-4" />
               <span>Explore</span>
               <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-emerald-400/20 transition-all duration-300 group-hover:w-full" />
             </a>
@@ -275,7 +281,7 @@ export default function VoxLanding() {
           >
             <div className="absolute inset-0 border border-emerald-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
             <div className="relative border border-emerald-400/60 bg-transparent text-white font-medium px-4 py-2 text-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-              <LogIn className="w-4 h-4 text-emerald-400" />
+              <LogIn className="w-4 h-4 text-white" />
               <span>NGO/Policymaker Login</span>
             </div>
           </a>
@@ -308,15 +314,15 @@ export default function VoxLanding() {
             <a href="/forums" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Join Debate">
               <div className="absolute inset-0 border border-blue-500/40 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
               <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-6 sm:px-10 py-3 sm:py-4 text-base sm:text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5 text-white" />
                 <span>Join Debate</span>
               </div>
             </a>
 
-            <a href="#upload" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Upload Chat">
+            <a href="/upload" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Upload Chat">
               <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
               <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-3 sm:py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <FileUp className="w-5 h-5 text-emerald-300" />
+                <FileUp className="w-5 h-5 text-white" />
                 <span>Upload Chat</span>
               </div>
             </a>
@@ -328,7 +334,7 @@ export default function VoxLanding() {
             >
               <div className="absolute inset-0 border border-gray-600 bg-gray-900/20 transition-all duration-300 group-hover:border-white/80 group-hover:shadow-lg group-hover:shadow-white/10" />
               <div className="relative border border-gray-400 bg-transparent text-white font-medium px-6 sm:px-8 py-3 sm:py-4 text-base transition-all duration-300 group-hover:border-white group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-gray-300" />
+                <ShieldCheck className="w-5 h-5 text-white" />
                 <span>NGO/Policymaker Login</span>
               </div>
             </a>
@@ -368,22 +374,22 @@ export default function VoxLanding() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             <div className="card-interactive bg-black border border-gray-700 p-6 h-full">
               <div className="flex items-center gap-3 mb-4">
-                <Users className="w-6 h-6 text-blue-300" />
+                <Users className="w-6 h-6 text-white" />
                 <h3 className="font-bold text-white">Real-Time Debate Scoring</h3>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
                 Agree / Disagree / Neutral voting with a live leaderboard of top contributors.
               </p>
               <div className="mt-4 flex items-center gap-3 text-xs text-gray-400">
-                <ThumbsUp className="w-4 h-4 text-emerald-400" />
-                <ThumbsDown className="w-4 h-4 text-blue-300" />
+                <ThumbsUp className="w-4 h-4 text-white" />
+                <ThumbsDown className="w-4 h-4 text-white" />
                 <span>Leaderboard updates live</span>
               </div>
             </div>
 
             <div className="card-interactive bg-black border border-gray-700 p-6 h-full">
               <div className="flex items-center gap-3 mb-4">
-                <BarChart3 className="w-6 h-6 text-emerald-300" />
+                <BarChart3 className="w-6 h-6 text-white" />
                 <h3 className="font-bold text-white">AI Sentiment Analysis</h3>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
@@ -394,7 +400,7 @@ export default function VoxLanding() {
 
             <div className="card-interactive bg-black border border-gray-700 p-6 h-full">
               <div className="flex items-center gap-3 mb-4">
-                <FileUp className="w-6 h-6 text-blue-300" />
+                <FileUp className="w-6 h-6 text-white" />
                 <h3 className="font-bold text-white">Upload & Summarize</h3>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
@@ -405,7 +411,7 @@ export default function VoxLanding() {
 
             <div className="card-interactive bg-black border border-gray-700 p-6 h-full">
               <div className="flex items-center gap-3 mb-4">
-                <Network className="w-6 h-6 text-emerald-300" />
+                <Network className="w-6 h-6 text-white" />
                 <h3 className="font-bold text-white">NGO & Policymaker Dashboards</h3>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
@@ -483,7 +489,7 @@ export default function VoxLanding() {
               <div className="absolute inset-0 border-2 border-blue-500/50 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
               <div className="relative border-2 border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <span>Start Participating</span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5 text-white" />
               </div>
             </a>
 
@@ -495,7 +501,7 @@ export default function VoxLanding() {
               <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
               <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <span>Explore Insights</span>
-                <ArrowRight className="w-5 h-5 text-emerald-300" />
+                <ArrowRight className="w-5 h-5 text-white" />
               </div>
             </a>
           </div>
