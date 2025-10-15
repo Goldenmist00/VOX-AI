@@ -59,9 +59,10 @@ interface CommentSystemProps {
   debateId: number
   debateTopic: string
   isJoined: boolean
+  onCommentAdded?: (comment: any) => void
 }
 
-export default function CommentSystem({ debateId, debateTopic, isJoined }: CommentSystemProps) {
+export default function CommentSystem({ debateId, debateTopic, isJoined, onCommentAdded }: CommentSystemProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -99,6 +100,11 @@ export default function CommentSystem({ debateId, debateTopic, isJoined }: Comme
 
       setComments(prev => [comment, ...prev])
       setNewComment("")
+      
+      // Notify parent component about new comment
+      if (onCommentAdded) {
+        onCommentAdded(comment)
+      }
     } catch (error) {
       console.error('Error analyzing comment:', error)
       // Still add the comment without analysis
@@ -117,6 +123,11 @@ export default function CommentSystem({ debateId, debateTopic, isJoined }: Comme
       }
       setComments(prev => [comment, ...prev])
       setNewComment("")
+      
+      // Notify parent component about new comment (even without analysis)
+      if (onCommentAdded) {
+        onCommentAdded(comment)
+      }
     } finally {
       setIsAnalyzing(false)
     }

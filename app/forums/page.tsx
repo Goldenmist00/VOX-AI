@@ -43,6 +43,10 @@ export default function ForumsPage() {
   const [joinedDebates, setJoinedDebates] = useState<Set<number>>(new Set())
   const [showCreateDebate, setShowCreateDebate] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [allComments, setAllComments] = useState<any[]>([])
+  const [dynamicKeywords, setDynamicKeywords] = useState([
+    "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
+  ])
 
   const debates = [
     {
@@ -106,6 +110,56 @@ export default function ForumsPage() {
     setSelectedDebate(debateId)
   }
 
+  // Calculate real-time sentiment from all comments
+  const calculateLiveSentiment = () => {
+    if (allComments.length === 0) {
+      return { positive: 45, negative: 25, neutral: 30 }
+    }
+
+    const sentimentCounts = allComments.reduce((acc, comment) => {
+      const sentiment = comment.analysis?.sentiment?.overall || 'neutral'
+      acc[sentiment] = (acc[sentiment] || 0) + 1
+      return acc
+    }, { positive: 0, negative: 0, neutral: 0 })
+
+    const total = allComments.length
+    return {
+      positive: Math.round((sentimentCounts.positive / total) * 100),
+      negative: Math.round((sentimentCounts.negative / total) * 100),
+      neutral: Math.round((sentimentCounts.neutral / total) * 100)
+    }
+  }
+
+  // Extract keywords from comment content
+  const extractKeywordsFromComments = () => {
+    if (allComments.length === 0) return dynamicKeywords
+
+    const allText = allComments.map(comment => comment.content).join(' ')
+    const words = allText.toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(word => word.length > 3)
+
+    const wordCounts = words.reduce((acc: Record<string, number>, word) => {
+      acc[word] = (acc[word] || 0) + 1
+      return acc
+    }, {})
+
+    const topWords = Object.entries(wordCounts)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .slice(0, 8)
+      .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1))
+
+    // Combine with original keywords and remove duplicates
+    const combined = [...new Set([...dynamicKeywords, ...topWords])]
+    return combined.slice(0, 8) // Limit to 8 keywords
+  }
+
+  // Add comment to global state
+  const addComment = (comment: any) => {
+    setAllComments(prev => [comment, ...prev])
+  }
+
   const filteredDebates = debates.filter(debate => 
     debate.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     debate.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -113,15 +167,39 @@ export default function ForumsPage() {
   )
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSentimentData(prev => ({
-        positive: Math.max(20, Math.min(60, prev.positive + (Math.random() - 0.5) * 4)),
-        negative: Math.max(15, Math.min(50, prev.negative + (Math.random() - 0.5) * 3)),
-        neutral: Math.max(15, Math.min(40, prev.neutral + (Math.random() - 0.5) * 2))
-      }))
-    }, 3000)
-    return () => clearInterval(interval)
+    // Add some initial mock comments for demonstration
+    const initialComments = [
+      {
+        id: "1",
+        content: "I believe carbon tax is essential for reducing emissions. The economic benefits outweigh the costs.",
+        analysis: { sentiment: { overall: "positive" } }
+      },
+      {
+        id: "2", 
+        content: "Carbon tax will hurt low-income families the most. We need alternative solutions.",
+        analysis: { sentiment: { overall: "negative" } }
+      },
+      {
+        id: "3",
+        content: "What about implementing carbon tax with rebates for low-income households?",
+        analysis: { sentiment: { overall: "positive" } }
+      }
+    ]
+    setAllComments(initialComments)
   }, [])
+
+  useEffect(() => {
+    // Update sentiment data based on real comments
+    const interval = setInterval(() => {
+      const liveSentiment = calculateLiveSentiment()
+      setSentimentData(liveSentiment)
+      
+      // Update keywords based on comments
+      const newKeywords = extractKeywordsFromComments()
+      setDynamicKeywords(newKeywords)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [allComments])
 
   return (
     <div className="min-h-screen bg-black text-white font-mono overflow-hidden relative">
@@ -392,6 +470,7 @@ export default function ForumsPage() {
                         debateId={debate.id}
                         debateTopic={debate.title}
                         isJoined={joinedDebates.has(debate.id)}
+                        onCommentAdded={addComment}
                       />
                     </div>
                   ))}
@@ -407,7 +486,7 @@ export default function ForumsPage() {
                     <h3 className="font-bold">AI Keywords</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {keywords.map((keyword, index) => (
+                    {dynamicKeywords.map((keyword, index) => (
                       <span
                         key={keyword}
                         className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer"
