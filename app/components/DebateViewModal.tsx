@@ -22,7 +22,8 @@ import {
   Award,
   Activity,
   Brain,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from "lucide-react"
 
 interface Comment {
@@ -86,6 +87,7 @@ interface DebateViewModalProps {
 export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewModalProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [commentsLoaded, setCommentsLoaded] = useState(false)
   const [sortBy, setSortBy] = useState<'recent' | 'score' | 'sentiment'>('recent')
   const [filterBy, setFilterBy] = useState<'all' | 'positive' | 'negative' | 'neutral'>('all')
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
@@ -149,15 +151,29 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
   ]
 
   useEffect(() => {
-    if (isOpen && debate) {
-      setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        setComments(mockComments)
-        setIsLoading(false)
-      }, 1000)
+    if (isOpen && debate && !commentsLoaded) {
+      loadComments()
     }
-  }, [isOpen, debate])
+  }, [isOpen, debate, commentsLoaded])
+
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset state when modal closes
+      setComments([])
+      setCommentsLoaded(false)
+      setExpandedComments(new Set())
+    }
+  }, [isOpen])
+
+  const loadComments = () => {
+    setIsLoading(true)
+    // Simulate API call
+    setTimeout(() => {
+      setComments(mockComments)
+      setCommentsLoaded(true)
+      setIsLoading(false)
+    }, 1000)
+  }
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -301,6 +317,14 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
                   {overallStats.avgScore}/100
                 </span>
               </div>
+              <button
+                onClick={loadComments}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="text-sm">Refresh</span>
+              </button>
             </div>
           </div>
         </div>
