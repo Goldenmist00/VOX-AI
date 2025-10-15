@@ -324,15 +324,41 @@ function AnalysisContent() {
                               <BarChart3 className="w-4 h-4 text-white" />
                               {point.relevance}% relevance
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Users className="w-4 h-4 text-white" />
-                              {point.mentions} mentions
-                            </span>
+                            <div className="relative group">
+                              <span className="flex items-center gap-1 cursor-pointer hover:text-blue-400 transition-colors">
+                                <Users className="w-4 h-4 text-white" />
+                                {point.mentions} mentions
+                              </span>
+                              <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg z-10 min-w-[200px]">
+                                <div className="text-xs text-gray-300 mb-1">Contributors:</div>
+                                <div className="space-y-1">
+                                  {point.contributors.map((contributor: string, idx: number) => (
+                                    <div key={idx} className="text-xs text-blue-400 flex items-center gap-1">
+                                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                                      {contributor}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-600"></div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs bg-gray-700 px-2 py-1 rounded">
+                          <div className="relative group">
+                            <span className="text-xs bg-gray-700 px-2 py-1 rounded cursor-pointer hover:bg-gray-600 transition-colors">
                               {point.contributors.length} contributors
                             </span>
+                            <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg z-10 min-w-[200px]">
+                              <div className="text-xs text-gray-300 mb-1">All Contributors:</div>
+                              <div className="space-y-1">
+                                {point.contributors.map((contributor: string, idx: number) => (
+                                  <div key={idx} className="text-xs text-emerald-400 flex items-center gap-1">
+                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                                    {contributor}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-600"></div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -364,11 +390,88 @@ function AnalysisContent() {
 
                 {/* Proposed Solution */}
                 <div className="bg-gray-950 border border-gray-700 rounded-lg p-6">
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-6">
                     <Target className="w-6 h-6 text-blue-400" />
                     <h2 className="text-2xl font-bold">Proposed Solution</h2>
                   </div>
-                  <p className="text-gray-300 leading-relaxed">{analysisResults.solution}</p>
+                  
+                  <div className="space-y-6">
+                    {/* Solution Overview */}
+                    <div className="bg-gradient-to-r from-blue-500/10 to-emerald-500/10 border border-blue-500/20 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        Solution Overview
+                      </h3>
+                      <p className="text-gray-300 leading-relaxed">{analysisResults.solution}</p>
+                    </div>
+
+                    {/* Implementation Framework */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
+                        <Zap className="w-5 h-5" />
+                        Implementation Framework
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-blue-400 font-bold text-sm">1</span>
+                            </div>
+                            <h4 className="font-semibold text-white">Immediate Actions</h4>
+                          </div>
+                          <p className="text-sm text-gray-400">Short-term solutions that can be implemented within 1-3 months to address urgent concerns.</p>
+                        </div>
+                        
+                        <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-emerald-400 font-bold text-sm">2</span>
+                            </div>
+                            <h4 className="font-semibold text-white">Strategic Planning</h4>
+                          </div>
+                          <p className="text-sm text-gray-400">Medium-term initiatives requiring 3-12 months for comprehensive policy development and stakeholder alignment.</p>
+                        </div>
+                        
+                        <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-purple-400 font-bold text-sm">3</span>
+                            </div>
+                            <h4 className="font-semibold text-white">Long-term Vision</h4>
+                          </div>
+                          <p className="text-sm text-gray-400">Sustainable solutions spanning 1-3 years for systemic change and lasting impact.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Success Metrics */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-yellow-400 flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5" />
+                        Success Metrics
+                      </h3>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                          <div className="text-sm text-gray-400 mb-1">Community Engagement</div>
+                          <div className="text-emerald-400 font-semibold">Increased participation in public forums</div>
+                        </div>
+                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                          <div className="text-sm text-gray-400 mb-1">Policy Implementation</div>
+                          <div className="text-blue-400 font-semibold">Adoption of recommended policies</div>
+                        </div>
+                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                          <div className="text-sm text-gray-400 mb-1">Stakeholder Satisfaction</div>
+                          <div className="text-purple-400 font-semibold">Positive feedback from all parties</div>
+                        </div>
+                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                          <div className="text-sm text-gray-400 mb-1">Measurable Outcomes</div>
+                          <div className="text-yellow-400 font-semibold">Quantifiable improvements in key areas</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -420,22 +523,65 @@ function AnalysisContent() {
                   </div>
                   <div className="space-y-3">
                     {analysisResults.contributors.slice(0, 5).map((contributor: any, index: number) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
-                        <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                          <span className="text-blue-400 font-semibold text-sm">{contributor.avatar}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{contributor.name}</span>
-                            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                              {contributor.tag}
-                            </span>
+                      <div key={index} className="relative group">
+                        <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors cursor-pointer">
+                          <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                            <span className="text-blue-400 font-semibold text-sm">{contributor.avatar}</span>
                           </div>
-                          <p className="text-sm text-gray-400">{contributor.role}</p>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{contributor.name}</span>
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                                {contributor.tag}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-400">{contributor.role}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-blue-400">{contributor.score}</div>
+                            <div className="text-xs text-gray-500">score</div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-blue-400">{contributor.score}</div>
-                          <div className="text-xs text-gray-500">score</div>
+                        
+                        {/* Detailed Contributor Info Tooltip */}
+                        <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-lg z-20 min-w-[300px]">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                <span className="text-blue-400 font-semibold text-lg">{contributor.avatar}</span>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-white">{contributor.name}</h4>
+                                <p className="text-sm text-gray-400">{contributor.role}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="bg-gray-700/50 rounded p-2">
+                                <div className="text-gray-400 text-xs">Contributions</div>
+                                <div className="text-emerald-400 font-semibold">{contributor.contributions}</div>
+                              </div>
+                              <div className="bg-gray-700/50 rounded p-2">
+                                <div className="text-gray-400 text-xs">Clarity Score</div>
+                                <div className="text-blue-400 font-semibold">{contributor.clarity}%</div>
+                              </div>
+                              <div className="bg-gray-700/50 rounded p-2">
+                                <div className="text-gray-400 text-xs">Engagement</div>
+                                <div className="text-purple-400 font-semibold">{contributor.engagement}%</div>
+                              </div>
+                              <div className="bg-gray-700/50 rounded p-2">
+                                <div className="text-gray-400 text-xs">Overall Score</div>
+                                <div className="text-yellow-400 font-semibold">{contributor.score}</div>
+                              </div>
+                            </div>
+                            
+                            <div className="pt-2 border-t border-gray-600">
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                                {contributor.tag}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-600"></div>
                         </div>
                       </div>
                     ))}
