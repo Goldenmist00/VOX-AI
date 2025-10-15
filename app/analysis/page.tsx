@@ -202,10 +202,12 @@ function AnalysisContent() {
                 <Upload className="w-4 h-4" />
                 <span>Upload</span>
               </a>
-              <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
-              </a>
+              {(user?.role === "ngo" || user?.role === "policymaker") && (
+                <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </a>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
