@@ -14,18 +14,9 @@ import {
   Users,
 } from "lucide-react"
 import { VoxAiSvgWordmark } from "@/components/vox-ai-svg-wordmark"
+import { LiveDashboardBoards } from "@/components/live-dashboard-boards"
 
 export default function VoxLanding() {
-  const [currentCommand, setCurrentCommand] = useState(0)
-  const [showCursor, setShowCursor] = useState(true)
-  const [matrixChars, setMatrixChars] = useState<string[]>([])
-  const [animatedBoxes, setAnimatedBoxes] = useState<boolean[]>([])
-  const [terminalLines, setTerminalLines] = useState<string[]>([])
-  const [currentTyping, setCurrentTyping] = useState("")
-  const [isExecuting, setIsExecuting] = useState(false)
-  const [executionStep, setExecutionStep] = useState(0)
-  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({})
-
   const [debates, setDebates] = useState(0)
   const [issues, setIssues] = useState(0)
   const [consensus, setConsensus] = useState(0)
@@ -68,164 +59,8 @@ export default function VoxLanding() {
     return () => clearInterval(iv)
   }, [])
 
-  const copyToClipboard = async (text: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedStates((prev) => ({ ...prev, [key]: true }))
-      setTimeout(() => {
-        setCopiedStates((prev) => ({ ...prev, [key]: false }))
-      }, 2000)
-    } catch (err) {
-      console.error("Failed to copy text: ", err)
-    }
-  }
-
-  const commands = [
-    "hexa-cli init --ai-powered",
-    "hexa-cli generate --model gpt-5 --context full",
-    "hexa-cli review --agent claude-4 --interactive",
-    "hexa-cli deploy --env production --optimize",
-  ]
-
-  const terminalSequences = [
-    {
-      command: "hexa-cli init --ai-powered",
-      outputs: [
-        "🚀 Initializing HEXA CLI project...",
-        "📦 Installing dependencies...",
-        "🤖 Configuring AI models...",
-        "✅ Project initialized successfully!",
-      ],
-    },
-    {
-      command: "hexa-cli generate --model gpt-5 --context full",
-      outputs: [
-        "🧠 Loading GPT-5 model...",
-        "📊 Analyzing codebase context...",
-        "⚡ Generating optimized code...",
-        "✨ Code generation complete!",
-      ],
-    },
-    {
-      command: "hexa-cli review --agent claude-4 --interactive",
-      outputs: [
-        "👁️  Starting interactive review...",
-        "🔍 Claude-4 analyzing changes...",
-        "💡 Suggesting improvements...",
-        "🎯 Review session active!",
-      ],
-    },
-    {
-      command: "hexa-cli deploy --env production --optimize",
-      outputs: [
-        "🏗️  Building for production...",
-        "⚡ Optimizing bundle size...",
-        "🌐 Deploying to production...",
-        "🎉 Deployment successful!",
-      ],
-    },
-  ]
-
-  const heroAsciiText = `██╗  ██╗███████╗██╗  ██╗ █████╗     ██████╗██╗     ██╗
-██║  ██║██╔════╝╚██╗██╔╝██╔══██╗   ██╔════╝██║     ██║
-███████║█████╗   ╚███╔╝ ███████║   ██║     ██║     ██║
-██╔══██║██╔══╝   ██╔██╗ ██╔══██║   ██║     ██║     ██║
-██║  ██║███████╗██╔╝ ██╗██║  ██║   ╚██████╗███████╗██║
-╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝    ╚═════╝╚══════╝╚═╝`
-
-  useEffect(() => {
-    const chars = "VOXAI01010101ABCDEF█▓▒░▄▀■□▪▫".split("")
-    const newMatrixChars = Array.from({ length: 100 }, () => chars[Math.floor(Math.random() * chars.length)])
-    setMatrixChars(newMatrixChars)
-
-    const interval = setInterval(() => {
-      setMatrixChars((prev) => prev.map(() => chars[Math.floor(Math.random() * chars.length)]))
-    }, 1500)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const boxes = Array.from({ length: 6 }, () => Math.random() > 0.5)
-    setAnimatedBoxes(boxes)
-
-    const interval = setInterval(() => {
-      setAnimatedBoxes((prev) => prev.map(() => Math.random() > 0.3))
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowCursor((prev) => !prev)
-    }, 500)
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const sequence = terminalSequences[currentCommand]
-    const timeouts: NodeJS.Timeout[] = []
-
-    const runSequence = async () => {
-      setTerminalLines([])
-      setCurrentTyping("")
-      setIsExecuting(false)
-      setExecutionStep(0)
-
-      const command = sequence.command
-      for (let i = 0; i <= command.length; i++) {
-        timeouts.push(
-          setTimeout(() => {
-            setCurrentTyping(command.slice(0, i))
-          }, i * 50),
-        )
-      }
-
-      timeouts.push(
-        setTimeout(
-          () => {
-            setIsExecuting(true)
-            setCurrentTyping("")
-            setTerminalLines((prev) => [...prev, `user@dev:~/project$ ${command}`])
-          },
-          command.length * 50 + 500,
-        ),
-      )
-
-      sequence.outputs.forEach((output, index) => {
-        timeouts.push(
-          setTimeout(
-            () => {
-              setExecutionStep(index + 1)
-              setTerminalLines((prev) => [...prev, output])
-            },
-            command.length * 50 + 1000 + index * 800,
-          ),
-        )
-      })
-
-      timeouts.push(
-        setTimeout(
-          () => {
-            setCurrentCommand((prev) => (prev + 1) % commands.length)
-          },
-          command.length * 50 + 1000 + sequence.outputs.length * 800 + 2000,
-        ),
-      )
-    }
-
-    runSequence()
-
-    return () => {
-      timeouts.forEach(clearTimeout)
-    }
-  }, [currentCommand])
-
   return (
     <div className="min-h-screen bg-black text-white font-mono overflow-hidden relative">
-
-
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-5">
         {dots.map((d, i) => (
           <div
@@ -234,7 +69,6 @@ export default function VoxLanding() {
             style={{ left: `${d.x}%`, top: `${d.y}%`, width: d.s * 3, height: d.s * 3, opacity: d.o }}
           />
         ))}
-        {/* connecting lines suggestion */}
         <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
         <div className="absolute inset-y-0 left-1/4 w-px bg-gradient-to-b from-transparent via-emerald-400/15 to-transparent" />
       </div>
@@ -268,7 +102,7 @@ export default function VoxLanding() {
             </a>
           </div>
           <a
-            href="#login"
+            href="/dashboard"
             className="group relative cursor-pointer"
             aria-label="NGO/Policymaker Login"
             title="NGO/Policymaker Login"
@@ -289,7 +123,6 @@ export default function VoxLanding() {
             <VoxAiSvgWordmark className="mx-auto w-[min(92vw,980px)] md:w-[min(90vw,1100px)]" />
             <span className="sr-only">VOX AI</span>
           </div>
-          {/* End wordmark */}
 
           <div className="text-center mb-10">
             <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight text-balance">
@@ -299,7 +132,7 @@ export default function VoxLanding() {
               </span>
             </h1>
             <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-              VOX AAI summarizes debates in real time, captures sentiment, and surfaces consensus so NGOs and
+              VOX AI summarizes debates in real time, captures sentiment, and surfaces consensus so NGOs and
               policymakers can act with confidence.
             </p>
           </div>
@@ -313,7 +146,7 @@ export default function VoxLanding() {
               </div>
             </a>
 
-            <a href="#upload" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Upload Chat">
+            <a href="/upload" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Upload Chat">
               <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
               <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-3 sm:py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <FileUp className="w-5 h-5 text-emerald-300" />
@@ -322,14 +155,14 @@ export default function VoxLanding() {
             </a>
 
             <a
-              href="#login"
+              href="/dashboard"
               className="group relative cursor-pointer w-full sm:w-auto"
-              aria-label="NGO/Policymaker Login"
+              aria-label="NGO/Policymaker Dashboard"
             >
               <div className="absolute inset-0 border border-gray-600 bg-gray-900/20 transition-all duration-300 group-hover:border-white/80 group-hover:shadow-lg group-hover:shadow-white/10" />
               <div className="relative border border-gray-400 bg-transparent text-white font-medium px-6 sm:px-8 py-3 sm:py-4 text-base transition-all duration-300 group-hover:border-white group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-gray-300" />
-                <span>NGO/Policymaker Login</span>
+                <span>NGO/Policymaker Dashboard</span>
               </div>
             </a>
           </div>
@@ -352,6 +185,9 @@ export default function VoxLanding() {
               <div className="text-gray-400 text-sm mt-1">Avg. consensus trend</div>
             </div>
           </div>
+
+          {/* Live Dashboard Boards */}
+          <LiveDashboardBoards />
         </div>
       </header>
 
@@ -387,7 +223,7 @@ export default function VoxLanding() {
                 <h3 className="font-bold text-white">AI Sentiment Analysis</h3>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
-                VADER + RoBERTa capture both short and long-form sentiments for higher fidelity.
+                VADER + Gemini capture both short and long-form sentiments for higher fidelity.
               </p>
               <div className="mt-4 text-xs text-gray-400">Granular tone and polarity over time.</div>
             </div>
@@ -475,11 +311,11 @@ export default function VoxLanding() {
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to explore the public voice?</h2>
           <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-10">
-            Start participating or dive into insights. Subtle micro-interactions guide you through.
+            Start participating or dive into insights. Real-time sentiment and contributor tracking guide your decisions.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
-            <a href="#join" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Start Participating">
+            <a href="/forums" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Start Participating">
               <div className="absolute inset-0 border-2 border-blue-500/50 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
               <div className="relative border-2 border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <span>Start Participating</span>
@@ -488,7 +324,7 @@ export default function VoxLanding() {
             </a>
 
             <a
-              href="#insights"
+              href="/dashboard"
               className="group relative cursor-pointer w-full sm:w-auto"
               aria-label="Explore Insights"
             >
@@ -509,7 +345,7 @@ export default function VoxLanding() {
             <div className="flex items-center gap-2">
               <span className="text-gray-600 text-lg">Built for civil discourse.</span>
             </div>
-            <div className="text-gray-700 text-sm">© {new Date().getFullYear()} VOX AAI. Insight from debate.</div>
+            <div className="text-gray-700 text-sm">© {new Date().getFullYear()} VOX AI. Insight from debate.</div>
           </div>
         </div>
       </footer>

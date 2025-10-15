@@ -1,0 +1,240 @@
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+
+export interface GeminiAnalysis {
+  sentiment: 'positive' | 'negative' | 'neutral'
+  relevancyScore: number
+  keywords: string[]
+  contextMatch: boolean
+  confidence: number
+}
+
+export interface DebateContext {
+  title: string
+  description: string
+  tags: string[]
+}
+
+export class GeminiService {
+  private model = genAI.getGenerativeModel({ 
+    model: process.env.GEMINI_MODEL || 'gemini-1.5-flash' 
+  })
+
+  async analyzeMessage(
+    messageText: string, 
+    debateContext: DebateContext,
+    existingVotes?: { agree: number; disagree: number; neutral: number }
+  ): Promise<GeminiAnalysis> {
+    try {
+      const prompt = this.buildAnalysisPrompt(messageText, debateContext, existingVotes)
+      
+      const result = await this.model.generateContent(prompt)
+      const response = await result.response
+      const text = response.text()
+      
+      return this.parseGeminiResponse(text, messageText, debateContext)
+    } catch (error) {
+      console.error('Gemini API Error:', error)
+      return this.getFallbackAnalysis(messageText, debateContext)
+    }
+  }
+
+  private buildAnalysisPrompt(
+    messageText: string, 
+    debateContext: DebateContext,
+    existingVotes?: { agree: number; disagree: number; neutral: number }
+  ): string {
+    const voteContext = existingVotes 
+      ? `Community votes: ${existingVotes.agree} agree, ${existingVotes.disagree} disagree, ${existingVotes.neutral} neutral.`
+      : ''
+
+    return `
+Analyze this debate message for sentiment, relevancy, and quality:
+
+DEBATE CONTEXT:
+Title: "${debateContext.title}"
+Description: "${debateContext.description}"
+Tags: ${debateContext.tags.join(', ')}
+
+MESSAGE TO ANALYZE:
+"${messageText}"
+
+${voteContext}
+
+Please provide analysis in this exact JSON format:
+{
+  "sentiment": "positive|negative|neutral",
+  "relevancyScore": number (10-100),
+  "keywords": ["keyword1", "keyword2", "keyword3"],
+  "contextMatch": boolean,
+  "confidence": number (0-100),
+  "reasoning": "brief explanation"
+}
+
+SCORING CRITERIA:
+- Relevancy (40%): How well does the message relate to the debate topic and tags?
+- Quality (30%): Is the message constructive, well-reasoned, and adds value?
+- Sentiment (20%): Positive (supportive, solution-oriented), Negative (critical, opposing), Neutral (balanced, questioning)
+- Engagement (10%): Does it encourage meaningful discussion?
+
+Score 80-100: Excellent contribution, highly relevant, well-reasoned
+Score 60-79: Good contribution, mostly relevant, clear points
+Score 40-59: Fair contribution, somewhat relevant, basic points
+Score 10-39: Poor contribution, off-topic or low quality
+    `.trim()
+  }
+
+  private parseGeminiResponse(
+    responseText: string, 
+    originalMessage: string, 
+    debateContext: DebateContext
+  ): GeminiAnalysis {
+    try {
+      // Try to extract JSON from the response
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        return {
+          sentiment: parsed.sentiment || 'neutral',
+          relevancyScore: Math.min(100, Math.max(10, parsed.relevancyScore || 50)),
+          keywords: (parsed.keywords || []).slice(0, 5),
+          contextMatch: parsed.contextMatch || false,
+          confidence: Math.min(100, Math.max(0, parsed.confidence || 50))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse Gemini response:', error)
+    }
+
+    // Fallback to local analysis if parsing fails
+    return this.getFallbackAnalysis(originalMessage, debateContext)
+  }
+
+  private getFallbackAnalysis(messageText: string, debateContext: DebateContext): GeminiAnalysis {
+    // Local fallback analysis
+    const keywords = this.extractKeywords(messageText)
+    const contextRelevance = this.calculateContextRelevance(messageText, debateContext)
+    const sentiment = this.analyzeSentiment(messageText)
+    
+    const relevancyScore = Math.min(100, Math.max(10, 
+      (contextRelevance * 0.4) + 
+      (sentiment.score * 0.3) + 
+      (keywords.length * 5) + 
+      (messageText.length > 50 ? 20 : 10)
+    ))
+
+    return {
+      sentiment: sentiment.type,
+      relevancyScore: Math.round(relevancyScore),
+      keywords: keywords,
+      contextMatch: contextRelevance > 70,
+      confidence: 60 // Lower confidence for fallback
+    }
+  }
+
+  private extractKeywords(text: string): string[] {
+    const commonWords = ['the', 'is', 'at', 'which', 'on', 'and', 'a', 'to', 'are', 'as', 'was', 'with', 'for', 'be', 'have', 'this', 'that', 'will', 'you', 'they', 'of', 'it', 'in', 'or', 'an', 'but', 'not', 'can', 'we', 'should', 'would', 'could']
+    const words = text.toLowerCase().match(/\b\w+\b/g) || []
+    
+    return words
+      .filter(word => word.length > 3 && !commonWords.includes(word))
+      .reduce((acc: string[], word) => {
+        if (!acc.includes(word)) acc.push(word)
+        return acc
+      }, [])
+      .slice(0, 5)
+  }
+
+  private calculateContextRelevance(messageText: string, debateContext: DebateContext): number {
+    const messageWords = messageText.toLowerCase().split(/\W+/)
+    const topicWords = [
+      ...debateContext.title.toLowerCase().split(/\W+/),
+      ...debateContext.description.toLowerCase().split(/\W+/),
+      ...debateContext.tags.join(' ').toLowerCase().split(/\W+/)
+    ].filter(word => word.length > 3)
+
+    let matches = 0
+    messageWords.forEach(word => {
+      if (word.length > 3 && topicWords.some(topicWord => 
+        topicWord.includes(word) || word.includes(topicWord)
+      )) {
+        matches++
+      }
+    })
+
+    return Math.min(100, (matches / Math.max(1, messageWords.length)) * 100)
+  }
+
+  private analyzeSentiment(text: string): { type: 'positive' | 'negative' | 'neutral', score: number } {
+    const positiveWords = ['good', 'great', 'excellent', 'support', 'agree', 'positive', 'beneficial', 'effective', 'important', 'necessary', 'solution', 'improve', 'better', 'success', 'valuable']
+    const negativeWords = ['bad', 'terrible', 'disagree', 'oppose', 'negative', 'harmful', 'ineffective', 'unnecessary', 'wrong', 'problematic', 'fail', 'worse', 'dangerous', 'useless', 'stupid']
+    
+    const words = text.toLowerCase().split(/\W+/)
+    let score = 50 // neutral baseline
+    
+    words.forEach(word => {
+      if (positiveWords.some(pos => word.includes(pos) || pos.includes(word))) score += 8
+      if (negativeWords.some(neg => word.includes(neg) || neg.includes(word))) score -= 8
+    })
+    
+    const finalScore = Math.min(100, Math.max(0, score))
+    
+    return {
+      type: finalScore > 60 ? 'positive' : finalScore < 40 ? 'negative' : 'neutral',
+      score: finalScore
+    }
+  }
+
+  async batchAnalyzeMessages(
+    messages: Array<{ text: string; votes?: { agree: number; disagree: number; neutral: number } }>,
+    debateContext: DebateContext
+  ): Promise<GeminiAnalysis[]> {
+    const analyses = await Promise.all(
+      messages.map(msg => this.analyzeMessage(msg.text, debateContext, msg.votes))
+    )
+    return analyses
+  }
+
+  async extractDebateKeywords(debateContext: DebateContext, recentMessages: string[]): Promise<string[]> {
+    try {
+      const prompt = `
+Extract the most relevant keywords from this debate context and recent messages:
+
+DEBATE: "${debateContext.title}"
+DESCRIPTION: "${debateContext.description}"
+TAGS: ${debateContext.tags.join(', ')}
+
+RECENT MESSAGES:
+${recentMessages.slice(0, 10).map((msg, i) => `${i + 1}. "${msg}"`).join('\n')}
+
+Return only the top 8 most relevant keywords as a JSON array:
+["keyword1", "keyword2", "keyword3", ...]
+
+Focus on:
+- Key concepts from the debate topic
+- Important terms from participant messages
+- Policy-relevant terminology
+- Technical or domain-specific words
+      `.trim()
+
+      const result = await this.model.generateContent(prompt)
+      const response = await result.response
+      const text = response.text()
+      
+      const jsonMatch = text.match(/\[[\s\S]*\]/)
+      if (jsonMatch) {
+        const keywords = JSON.parse(jsonMatch[0])
+        return keywords.slice(0, 8)
+      }
+    } catch (error) {
+      console.error('Keyword extraction error:', error)
+    }
+
+    // Fallback to local extraction
+    return this.extractKeywords([debateContext.title, debateContext.description, ...recentMessages].join(' '))
+  }
+}
+
+export const geminiService = new GeminiService()
