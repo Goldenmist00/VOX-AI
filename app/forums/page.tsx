@@ -45,7 +45,6 @@ export default function ForumsPage() {
   const [joinedDebates, setJoinedDebates] = useState<Set<number>>(new Set())
   const [showCreateDebate, setShowCreateDebate] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [allComments, setAllComments] = useState<any[]>([])
   const [dynamicKeywords, setDynamicKeywords] = useState([
     "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
@@ -188,20 +187,11 @@ export default function ForumsPage() {
     setAllComments(prev => [commentWithDebateId, ...prev])
   }
 
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
   const filteredDebates = debates.filter(debate => {
-    if (!debouncedSearchQuery.trim()) return true
+    if (!searchQuery.trim()) return true
     
-    const query = debouncedSearchQuery.toLowerCase().trim()
-    return (
+    const query = searchQuery.toLowerCase().trim()
+    const matches = (
       debate.title.toLowerCase().includes(query) ||
       debate.description.toLowerCase().includes(query) ||
       debate.tags.some(tag => tag.toLowerCase().includes(query)) ||
@@ -214,10 +204,17 @@ export default function ForumsPage() {
       (query.includes('negative') && debate.sentiment.negative > 60) ||
       (query.includes('neutral') && debate.sentiment.neutral > 60) ||
       // Search by activity level
-      (query.includes('active') && debate.activity === 'High') ||
-      (query.includes('trending') && debate.activity === 'High') ||
-      (query.includes('quiet') && debate.activity === 'Low')
+      (query.includes('active') && debate.activity === 'high') ||
+      (query.includes('trending') && debate.activity === 'high') ||
+      (query.includes('quiet') && debate.activity === 'low')
     )
+    
+    // Debug logging
+    if (searchQuery.trim()) {
+      console.log(`Searching for "${query}" in "${debate.title}": ${matches}`)
+    }
+    
+    return matches
   })
 
   // Generate search suggestions
@@ -384,54 +381,6 @@ export default function ForumsPage() {
               </p>
             </div>
 
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white" />
-                <input
-                  type="text"
-                  placeholder="Search topics (e.g., Climate Policy, Internet Censorship...)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setShowSearchSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
-                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-12 pr-12 py-4 text-white placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-colors"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                    title="Clear search"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-                
-                {/* Search Suggestions Dropdown */}
-                {showSearchSuggestions && searchQuery && searchSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                    {searchSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSearchQuery(suggestion)
-                          setShowSearchSuggestions(false)
-                        }}
-                        className="w-full px-4 py-2 text-left text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
-                      >
-                        <Search className="w-4 h-4 text-gray-400" />
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {searchQuery && (
-                <div className="mt-2 text-sm text-gray-400 text-center">
-                  {filteredDebates.length} debate{filteredDebates.length !== 1 ? 's' : ''} found for "{searchQuery}"
-                </div>
-              )}
-            </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -470,7 +419,7 @@ export default function ForumsPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search debates, topics, tags, or try 'high participants', 'positive sentiment', 'active'..."
+                      placeholder="Search debates by title, topic, or tags (e.g., 'Carbon Tax', 'Environment', 'Policy')..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setShowSearchSuggestions(true)}
@@ -657,6 +606,28 @@ export default function ForumsPage() {
                       />
                     </div>
                   ))}
+                  
+                  {/* No Results Message */}
+                  {searchQuery && filteredDebates.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="text-gray-400 mb-4">
+                        <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-xl font-semibold mb-2">No debates found</h3>
+                        <p className="text-gray-500">
+                          No debates match your search for "<span className="text-white">{searchQuery}</span>"
+                        </p>
+                        <p className="text-sm text-gray-600 mt-2">
+                          Try searching for different keywords or check your spelling
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        Clear search
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
