@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/upload', '/forums', '/analysis']
@@ -24,7 +24,8 @@ export function middleware(request: NextRequest) {
   let user = null
   if (token) {
     try {
-      user = jwt.verify(token, JWT_SECRET) as any
+      const { payload } = await jwtVerify(token, JWT_SECRET)
+      user = payload as any
       console.log(`Middleware: User verified - ${user.email} (${user.role})`)
     } catch (error) {
       console.log('Middleware: Token verification failed:', error)

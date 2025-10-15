@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
 
     // Verify token
     console.log('Attempting to verify token...')
-    const decoded = jwt.verify(token, JWT_SECRET) as any
+    const { payload } = await jwtVerify(token, JWT_SECRET)
+    const decoded = payload as any
     console.log('Token decoded successfully:', { userId: decoded.userId, email: decoded.email })
 
     // Find user
