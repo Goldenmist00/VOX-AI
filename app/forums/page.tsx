@@ -130,6 +130,29 @@ export default function ForumsPage() {
     }
   }
 
+  // Calculate sentiment for a specific debate
+  const calculateDebateSentiment = (debateId: number) => {
+    const debateComments = allComments.filter(comment => comment.debateId === debateId)
+    
+    if (debateComments.length === 0) {
+      // Return default sentiment if no comments
+      return { positive: 50, negative: 25, neutral: 25 }
+    }
+
+    const sentimentCounts = debateComments.reduce((acc, comment) => {
+      const sentiment = comment.analysis?.sentiment?.overall || 'neutral'
+      acc[sentiment] = (acc[sentiment] || 0) + 1
+      return acc
+    }, { positive: 0, negative: 0, neutral: 0 })
+
+    const total = debateComments.length
+    return {
+      positive: Math.round((sentimentCounts.positive / total) * 100),
+      negative: Math.round((sentimentCounts.negative / total) * 100),
+      neutral: Math.round((sentimentCounts.neutral / total) * 100)
+    }
+  }
+
   // Extract keywords from comment content
   const extractKeywordsFromComments = () => {
     if (allComments.length === 0) return dynamicKeywords
@@ -156,8 +179,9 @@ export default function ForumsPage() {
   }
 
   // Add comment to global state
-  const addComment = (comment: any) => {
-    setAllComments(prev => [comment, ...prev])
+  const addComment = (comment: any, debateId: number) => {
+    const commentWithDebateId = { ...comment, debateId }
+    setAllComments(prev => [commentWithDebateId, ...prev])
   }
 
   const filteredDebates = debates.filter(debate => 
@@ -172,17 +196,32 @@ export default function ForumsPage() {
       {
         id: "1",
         content: "I believe carbon tax is essential for reducing emissions. The economic benefits outweigh the costs.",
-        analysis: { sentiment: { overall: "positive" } }
+        analysis: { sentiment: { overall: "positive" } },
+        debateId: 1
       },
       {
         id: "2", 
         content: "Carbon tax will hurt low-income families the most. We need alternative solutions.",
-        analysis: { sentiment: { overall: "negative" } }
+        analysis: { sentiment: { overall: "negative" } },
+        debateId: 1
       },
       {
         id: "3",
         content: "What about implementing carbon tax with rebates for low-income households?",
-        analysis: { sentiment: { overall: "positive" } }
+        analysis: { sentiment: { overall: "positive" } },
+        debateId: 1
+      },
+      {
+        id: "4",
+        content: "Internet censorship is necessary to protect children from harmful content online.",
+        analysis: { sentiment: { overall: "positive" } },
+        debateId: 2
+      },
+      {
+        id: "5",
+        content: "Censorship violates our fundamental right to free speech and expression.",
+        analysis: { sentiment: { overall: "negative" } },
+        debateId: 2
       }
     ]
     setAllComments(initialComments)
@@ -400,28 +439,35 @@ export default function ForumsPage() {
                       {/* Sentiment Bar */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                          <span>Sentiment Analysis</span>
+                          <span>Live Sentiment Analysis</span>
                           <span>AI Score: {debate.aiScore}/100</span>
                         </div>
-                        <div className="flex h-2 bg-gray-800 rounded-full overflow-hidden">
-                          <div
-                            className="bg-green-500 transition-all duration-500"
-                            style={{ width: `${debate.sentiment.positive}%` }}
-                          />
-                          <div
-                            className="bg-gray-500 transition-all duration-500"
-                            style={{ width: `${debate.sentiment.neutral}%` }}
-                          />
-                          <div
-                            className="bg-red-500 transition-all duration-500"
-                            style={{ width: `${debate.sentiment.negative}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-400 mt-1">
-                          <span>Positive {debate.sentiment.positive}%</span>
-                          <span>Neutral {debate.sentiment.neutral}%</span>
-                          <span>Negative {debate.sentiment.negative}%</span>
-                        </div>
+                        {(() => {
+                          const debateSentiment = calculateDebateSentiment(debate.id)
+                          return (
+                            <>
+                              <div className="flex h-2 bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                  className="bg-green-500 transition-all duration-500"
+                                  style={{ width: `${debateSentiment.positive}%` }}
+                                />
+                                <div
+                                  className="bg-gray-500 transition-all duration-500"
+                                  style={{ width: `${debateSentiment.neutral}%` }}
+                                />
+                                <div
+                                  className="bg-red-500 transition-all duration-500"
+                                  style={{ width: `${debateSentiment.negative}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                <span>Positive {debateSentiment.positive}%</span>
+                                <span>Neutral {debateSentiment.neutral}%</span>
+                                <span>Negative {debateSentiment.negative}%</span>
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
 
                       {/* Action Buttons */}

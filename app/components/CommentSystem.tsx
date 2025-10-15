@@ -59,7 +59,7 @@ interface CommentSystemProps {
   debateId: number
   debateTopic: string
   isJoined: boolean
-  onCommentAdded?: (comment: any) => void
+  onCommentAdded?: (comment: any, debateId: number) => void
 }
 
 export default function CommentSystem({ debateId, debateTopic, isJoined, onCommentAdded }: CommentSystemProps) {
@@ -103,7 +103,7 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
       
       // Notify parent component about new comment
       if (onCommentAdded) {
-        onCommentAdded(comment)
+        onCommentAdded(comment, debateId)
       }
     } catch (error) {
       console.error('Error analyzing comment:', error)
@@ -126,7 +126,7 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
       
       // Notify parent component about new comment (even without analysis)
       if (onCommentAdded) {
-        onCommentAdded(comment)
+        onCommentAdded(comment, debateId)
       }
     } finally {
       setIsAnalyzing(false)
