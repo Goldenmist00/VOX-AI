@@ -10,7 +10,7 @@ const protectedRoutes = ['/dashboard', '/upload', '/forums', '/analysis']
 // Routes that should redirect authenticated users
 const authRoutes = ['/login', '/signup']
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get('vox-ai-auth')?.value || request.cookies.get('vox-ai-auth-debug')?.value
 
