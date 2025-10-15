@@ -254,8 +254,8 @@ export default function VoxLanding() {
             </div>
           </a>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-gray-400 hover:text-white transition-colors relative group">
-              <span>Features</span>
+            <a href="/forums" className="text-gray-400 hover:text-white transition-colors relative group">
+              <span>Forums</span>
               <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-emerald-400/20 transition-all duration-300 group-hover:w-full" />
             </a>
             <a href="#how" className="text-gray-400 hover:text-white transition-colors relative group">
@@ -305,7 +305,7 @@ export default function VoxLanding() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
-            <a href="#join" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Join Debate">
+            <a href="/forums" className="group relative cursor-pointer w-full sm:w-auto" aria-label="Join Debate">
               <div className="absolute inset-0 border border-blue-500/40 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
               <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-6 sm:px-10 py-3 sm:py-4 text-base sm:text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center justify-center gap-2">
                 <MessageSquare className="w-5 h-5" />
