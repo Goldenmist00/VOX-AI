@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   Eye,
   EyeOff,
@@ -23,22 +25,33 @@ import {
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [userType, setUserType] = useState<"citizen" | "organization">("citizen")
+  const [userType, setUserType] = useState<"citizen" | "ngo" | "policymaker">("citizen")
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
     organization: "",
     position: "",
-    location: "",
     agreeToTerms: false,
-    subscribeNewsletter: true,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  
+  const { signup, isAuthenticated, canAccessDashboard } = useAuth()
+  const router = useRouter()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (canAccessDashboard) {
+        router.push('/dashboard')
+      } else {
+        router.push('/')
+      }
+    }
+  }, [isAuthenticated, canAccessDashboard, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,20 +65,10 @@ export default function SignupPage() {
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required"
     if (!formData.email.trim()) newErrors.email = "Email is required"
     if (!formData.password) newErrors.password = "Password is required"
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords don't match"
-    }
-    if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters"
-    }
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = "You must agree to the terms and conditions"
-    }
-
-    if (userType === "organization") {
-      if (!formData.organization.trim()) newErrors.organization = "Organization is required"
-      if (!formData.position.trim()) newErrors.position = "Position is required"
-    }
+    if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters"
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match"
+    if (userType !== 'citizen' && !formData.organization.trim()) newErrors.organization = "Organization is required for NGO/Policymaker accounts"
+    if (!formData.agreeToTerms) newErrors.agreeToTerms = "You must agree to the terms and conditions"
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -73,12 +76,29 @@ export default function SignupPage() {
       return
     }
 
-    // Simulate signup process
-    setTimeout(() => {
-      setIsLoading(false)
-      // Handle signup logic here
-      console.log("Signup attempt:", { ...formData, userType })
-    }, 2000)
+    // Call signup API
+    const result = await signup({
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      role: userType,
+      organization: userType !== 'citizen' ? formData.organization : undefined,
+      position: userType !== 'citizen' ? formData.position : undefined,
+    })
+    
+    if (result.success) {
+      // Redirect based on user role
+      if (canAccessDashboard) {
+        router.push('/dashboard')
+      } else {
+        router.push('/')
+      }
+    } else {
+      setErrors({ general: result.error || 'Signup failed' })
+    }
+    
+    setIsLoading(false)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
