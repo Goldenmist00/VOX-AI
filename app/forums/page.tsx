@@ -524,7 +524,7 @@ export default function ForumsPage() {
                           </button>
                         </div>
 
-                        {userType === "ngo" && (
+                        {user && (user.role === "ngo" || user.role === "policymaker") && (
                           <button className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg hover:bg-emerald-500/30 transition-colors">
                             <Target className="w-4 h-4 text-white" />
                             🔹 Adopt This Issue

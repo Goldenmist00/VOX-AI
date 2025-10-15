@@ -676,7 +676,7 @@ function AnalysisContent() {
                 </div>
 
                 {/* Action Buttons */}
-                {userType === "ngo" && (
+                {user && (user.role === "ngo" || user.role === "policymaker") && (
                   <div className="bg-gray-950 border border-gray-700 rounded-lg p-6">
                     <h3 className="text-lg font-bold mb-4">Take Action</h3>
                     <div className="space-y-3">
