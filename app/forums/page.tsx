@@ -26,8 +26,11 @@ import {
   Sparkles,
   Home,
   Upload,
-  LayoutDashboard
+  LayoutDashboard,
+  X
 } from "lucide-react"
+import CommentSystem from "../components/CommentSystem"
+import DebateViewModal from "../components/DebateViewModal"
 
 export default function ForumsPage() {
   const [activeFilter, setActiveFilter] = useState("trending")
@@ -35,6 +38,13 @@ export default function ForumsPage() {
   const [userType, setUserType] = useState<"citizen" | "ngo">("citizen")
   const [sentimentData, setSentimentData] = useState({ positive: 45, negative: 25, neutral: 30 })
   const [keywords, setKeywords] = useState([
+    "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
+  ])
+  const [joinedDebates, setJoinedDebates] = useState<Set<number>>(new Set())
+  const [showCreateDebate, setShowCreateDebate] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [allComments, setAllComments] = useState<any[]>([])
+  const [dynamicKeywords, setDynamicKeywords] = useState([
     "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
   ])
 
@@ -84,16 +94,151 @@ export default function ForumsPage() {
     { id: 4, username: "ThoughtLeader", avatar: "TL", aiScore: 82, clarity: 85, engagement: 79 }
   ]
 
+  const handleJoinDebate = (debateId: number) => {
+    setJoinedDebates(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(debateId)) {
+        newSet.delete(debateId)
+      } else {
+        newSet.add(debateId)
+      }
+      return newSet
+    })
+  }
+
+  const handleViewDebate = (debateId: number) => {
+    setSelectedDebate(debateId)
+  }
+
+  // Calculate real-time sentiment from all comments
+  const calculateLiveSentiment = () => {
+    if (allComments.length === 0) {
+      return { positive: 45, negative: 25, neutral: 30 }
+    }
+
+    const sentimentCounts = allComments.reduce((acc, comment) => {
+      const sentiment = comment.analysis?.sentiment?.overall || 'neutral'
+      acc[sentiment] = (acc[sentiment] || 0) + 1
+      return acc
+    }, { positive: 0, negative: 0, neutral: 0 })
+
+    const total = allComments.length
+    return {
+      positive: Math.round((sentimentCounts.positive / total) * 100),
+      negative: Math.round((sentimentCounts.negative / total) * 100),
+      neutral: Math.round((sentimentCounts.neutral / total) * 100)
+    }
+  }
+
+  // Calculate sentiment for a specific debate
+  const calculateDebateSentiment = (debateId: number) => {
+    const debateComments = allComments.filter(comment => comment.debateId === debateId)
+    
+    if (debateComments.length === 0) {
+      // Return default sentiment if no comments
+      return { positive: 50, negative: 25, neutral: 25 }
+    }
+
+    const sentimentCounts = debateComments.reduce((acc, comment) => {
+      const sentiment = comment.analysis?.sentiment?.overall || 'neutral'
+      acc[sentiment] = (acc[sentiment] || 0) + 1
+      return acc
+    }, { positive: 0, negative: 0, neutral: 0 })
+
+    const total = debateComments.length
+    return {
+      positive: Math.round((sentimentCounts.positive / total) * 100),
+      negative: Math.round((sentimentCounts.negative / total) * 100),
+      neutral: Math.round((sentimentCounts.neutral / total) * 100)
+    }
+  }
+
+  // Extract keywords from comment content
+  const extractKeywordsFromComments = () => {
+    if (allComments.length === 0) return dynamicKeywords
+
+    const allText = allComments.map(comment => comment.content).join(' ')
+    const words = allText.toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(word => word.length > 3)
+
+    const wordCounts = words.reduce((acc: Record<string, number>, word) => {
+      acc[word] = (acc[word] || 0) + 1
+      return acc
+    }, {})
+
+    const topWords = Object.entries(wordCounts)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .slice(0, 8)
+      .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1))
+
+    // Combine with original keywords and remove duplicates
+    const combined = [...new Set([...dynamicKeywords, ...topWords])]
+    return combined.slice(0, 8) // Limit to 8 keywords
+  }
+
+  // Add comment to global state
+  const addComment = (comment: any, debateId: number) => {
+    const commentWithDebateId = { ...comment, debateId }
+    setAllComments(prev => [commentWithDebateId, ...prev])
+  }
+
+  const filteredDebates = debates.filter(debate => 
+    debate.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    debate.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    debate.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSentimentData(prev => ({
-        positive: Math.max(20, Math.min(60, prev.positive + (Math.random() - 0.5) * 4)),
-        negative: Math.max(15, Math.min(50, prev.negative + (Math.random() - 0.5) * 3)),
-        neutral: Math.max(15, Math.min(40, prev.neutral + (Math.random() - 0.5) * 2))
-      }))
-    }, 3000)
-    return () => clearInterval(interval)
+    // Add some initial mock comments for demonstration
+    const initialComments = [
+      {
+        id: "1",
+        content: "I believe carbon tax is essential for reducing emissions. The economic benefits outweigh the costs.",
+        analysis: { sentiment: { overall: "positive" } },
+        debateId: 1
+      },
+      {
+        id: "2", 
+        content: "Carbon tax will hurt low-income families the most. We need alternative solutions.",
+        analysis: { sentiment: { overall: "negative" } },
+        debateId: 1
+      },
+      {
+        id: "3",
+        content: "What about implementing carbon tax with rebates for low-income households?",
+        analysis: { sentiment: { overall: "positive" } },
+        debateId: 1
+      },
+      {
+        id: "4",
+        content: "Internet censorship is necessary to protect children from harmful content online.",
+        analysis: { sentiment: { overall: "positive" } },
+        debateId: 2
+      },
+      {
+        id: "5",
+        content: "Censorship violates our fundamental right to free speech and expression.",
+        analysis: { sentiment: { overall: "negative" } },
+        debateId: 2
+      }
+    ]
+    setAllComments(initialComments)
   }, [])
+
+  useEffect(() => {
+    // Update sentiment data based on real comments
+    const interval = setInterval(() => {
+      const liveSentiment = calculateLiveSentiment()
+      setSentimentData(liveSentiment)
+      
+      // Update keywords based on comments
+      const newKeywords = extractKeywordsFromComments()
+      setDynamicKeywords(newKeywords)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [allComments])
 
   return (
     <div className="min-h-screen bg-black text-white font-mono overflow-hidden relative">
@@ -196,11 +341,14 @@ export default function ForumsPage() {
                 </div>
               </button>
 
-              <button className="group relative cursor-pointer">
+              <button 
+                onClick={() => setShowCreateDebate(true)}
+                className="group relative cursor-pointer"
+              >
                 <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
                 <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-white" />
-                  <span>Join Debate</span>
+                  <Plus className="w-5 h-5 text-white" />
+                  <span>Create Debate</span>
                 </div>
               </button>
             </div>
@@ -214,6 +362,20 @@ export default function ForumsPage() {
 
               {/* Main Debate Area */}
               <div className="lg:col-span-3">
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search debates, topics, or tags..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+                    />
+                  </div>
+                </div>
+
                 {/* Filter Tabs */}
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex bg-gray-900/50 border border-gray-700 rounded-lg p-1">
@@ -239,7 +401,7 @@ export default function ForumsPage() {
 
                 {/* Debate Cards */}
                 <div className="space-y-6">
-                  {debates.map((debate) => (
+                  {filteredDebates.map((debate) => (
                     <div key={debate.id} className="card-interactive bg-gray-950/60 border border-gray-700 p-6 hover:border-gray-500 transition-all duration-300">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
@@ -277,36 +439,69 @@ export default function ForumsPage() {
                       {/* Sentiment Bar */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                          <span>Sentiment Analysis</span>
+                          <span>Live Sentiment Analysis</span>
                           <span>AI Score: {debate.aiScore}/100</span>
                         </div>
-                        <div className="flex h-2 bg-gray-800 rounded-full overflow-hidden">
-                          <div
-                            className="bg-green-500 transition-all duration-500"
-                            style={{ width: `${debate.sentiment.positive}%` }}
-                          />
-                          <div
-                            className="bg-gray-500 transition-all duration-500"
-                            style={{ width: `${debate.sentiment.neutral}%` }}
-                          />
-                          <div
-                            className="bg-red-500 transition-all duration-500"
-                            style={{ width: `${debate.sentiment.negative}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-400 mt-1">
-                          <span>Positive {debate.sentiment.positive}%</span>
-                          <span>Neutral {debate.sentiment.neutral}%</span>
-                          <span>Negative {debate.sentiment.negative}%</span>
-                        </div>
+                        {(() => {
+                          const debateSentiment = calculateDebateSentiment(debate.id)
+                          return (
+                            <>
+                              <div className="flex h-2 bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                  className="bg-green-500 transition-all duration-500"
+                                  style={{ width: `${debateSentiment.positive}%` }}
+                                />
+                                <div
+                                  className="bg-gray-500 transition-all duration-500"
+                                  style={{ width: `${debateSentiment.neutral}%` }}
+                                />
+                                <div
+                                  className="bg-red-500 transition-all duration-500"
+                                  style={{ width: `${debateSentiment.negative}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                <span>Positive {debateSentiment.positive}%</span>
+                                <span>Neutral {debateSentiment.neutral}%</span>
+                                <span>Negative {debateSentiment.negative}%</span>
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
 
                       {/* Action Buttons */}
                       <div className="flex items-center justify-between">
-                        <button className="flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-500/30 transition-colors">
-                          <Eye className="w-4 h-4 text-white" />
-                          View Debate
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => handleViewDebate(debate.id)}
+                            className="flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-500/30 transition-colors"
+                          >
+                            <Eye className="w-4 h-4 text-white" />
+                            View Debate
+                          </button>
+                          
+                          <button 
+                            onClick={() => handleJoinDebate(debate.id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                              joinedDebates.has(debate.id)
+                                ? "bg-emerald-500/30 text-emerald-400 border border-emerald-500/50"
+                                : "bg-gray-700/50 text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400"
+                            }`}
+                          >
+                            {joinedDebates.has(debate.id) ? (
+                              <>
+                                <MessageSquare className="w-4 h-4 text-white" />
+                                Joined
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4 text-white" />
+                                Join Debate
+                              </>
+                            )}
+                          </button>
+                        </div>
 
                         {userType === "ngo" && (
                           <button className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg hover:bg-emerald-500/30 transition-colors">
@@ -315,6 +510,14 @@ export default function ForumsPage() {
                           </button>
                         )}
                       </div>
+
+                      {/* Comment System */}
+                      <CommentSystem 
+                        debateId={debate.id}
+                        debateTopic={debate.title}
+                        isJoined={joinedDebates.has(debate.id)}
+                        onCommentAdded={addComment}
+                      />
                     </div>
                   ))}
                 </div>
@@ -329,7 +532,7 @@ export default function ForumsPage() {
                     <h3 className="font-bold">AI Keywords</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {keywords.map((keyword, index) => (
+                    {dynamicKeywords.map((keyword, index) => (
                       <span
                         key={keyword}
                         className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer"
@@ -429,6 +632,82 @@ export default function ForumsPage() {
           </div>
         </div>
       </footer>
+
+      {/* Create Debate Modal */}
+      {showCreateDebate && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-950 border border-gray-700 rounded-lg p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Create New Debate</h2>
+              <button 
+                onClick={() => setShowCreateDebate(false)}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+            
+            <form className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Debate Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter a compelling debate title..."
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Describe the debate topic and key points for discussion..."
+                  rows={4}
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors resize-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Tags
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter tags separated by commas (e.g., Environment, Policy, Economy)"
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowCreateDebate(false)}
+                  className="flex-1 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Debate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Debate View Modal */}
+      <DebateViewModal
+        debate={selectedDebate ? debates.find(d => d.id === selectedDebate) || null : null}
+        isOpen={selectedDebate !== null}
+        onClose={() => setSelectedDebate(null)}
+      />
     </div>
   )
 }
