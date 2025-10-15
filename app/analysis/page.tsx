@@ -402,7 +402,12 @@ function AnalysisContent() {
                         <Sparkles className="w-5 h-5" />
                         Solution Overview
                       </h3>
-                      <p className="text-gray-300 leading-relaxed">{analysisResults.solution}</p>
+                      <p className="text-gray-300 leading-relaxed">
+                        {typeof analysisResults.solution === 'string' 
+                          ? analysisResults.solution 
+                          : analysisResults.solution?.recommendation || 'Solution details not available'
+                        }
+                      </p>
                     </div>
 
                     {/* Implementation Framework */}
@@ -412,38 +417,58 @@ function AnalysisContent() {
                         Implementation Framework
                       </h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {typeof analysisResults.solution === 'object' && analysisResults.solution?.timeline ? (
                         <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                              <span className="text-blue-400 font-bold text-sm">1</span>
-                            </div>
-                            <h4 className="font-semibold text-white">Immediate Actions</h4>
-                          </div>
-                          <p className="text-sm text-gray-400">Short-term solutions that can be implemented within 1-3 months to address urgent concerns.</p>
+                          <h4 className="font-semibold text-white mb-3">Timeline</h4>
+                          <p className="text-sm text-gray-400">{analysisResults.solution.timeline}</p>
                         </div>
-                        
-                        <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                              <span className="text-emerald-400 font-bold text-sm">2</span>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                <span className="text-blue-400 font-bold text-sm">1</span>
+                              </div>
+                              <h4 className="font-semibold text-white">Immediate Actions</h4>
                             </div>
-                            <h4 className="font-semibold text-white">Strategic Planning</h4>
+                            <p className="text-sm text-gray-400">Short-term solutions that can be implemented within 1-3 months to address urgent concerns.</p>
                           </div>
-                          <p className="text-sm text-gray-400">Medium-term initiatives requiring 3-12 months for comprehensive policy development and stakeholder alignment.</p>
+                          
+                          <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                                <span className="text-emerald-400 font-bold text-sm">2</span>
+                              </div>
+                              <h4 className="font-semibold text-white">Strategic Planning</h4>
+                            </div>
+                            <p className="text-sm text-gray-400">Medium-term initiatives requiring 3-12 months for comprehensive policy development and stakeholder alignment.</p>
+                          </div>
+                          
+                          <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+                                <span className="text-purple-400 font-bold text-sm">3</span>
+                              </div>
+                              <h4 className="font-semibold text-white">Long-term Vision</h4>
+                            </div>
+                            <p className="text-sm text-gray-400">Sustainable solutions spanning 1-3 years for systemic change and lasting impact.</p>
+                          </div>
                         </div>
-                        
+                      )}
+                    </div>
+
+                    {/* Stakeholders */}
+                    {typeof analysisResults.solution === 'object' && analysisResults.solution?.stakeholders && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-purple-400 flex items-center gap-2">
+                          <Users className="w-5 h-5" />
+                          Key Stakeholders
+                        </h3>
                         <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-                              <span className="text-purple-400 font-bold text-sm">3</span>
-                            </div>
-                            <h4 className="font-semibold text-white">Long-term Vision</h4>
-                          </div>
-                          <p className="text-sm text-gray-400">Sustainable solutions spanning 1-3 years for systemic change and lasting impact.</p>
+                          <p className="text-sm text-gray-400">{analysisResults.solution.stakeholders}</p>
                         </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Success Metrics */}
                     <div className="space-y-4">
@@ -452,24 +477,31 @@ function AnalysisContent() {
                         Success Metrics
                       </h3>
                       
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
-                          <div className="text-sm text-gray-400 mb-1">Community Engagement</div>
-                          <div className="text-emerald-400 font-semibold">Increased participation in public forums</div>
+                      {typeof analysisResults.solution === 'object' && analysisResults.solution?.successMetrics ? (
+                        <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                          <h4 className="font-semibold text-white mb-3">Key Success Metrics</h4>
+                          <p className="text-sm text-gray-400">{analysisResults.solution.successMetrics}</p>
                         </div>
-                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
-                          <div className="text-sm text-gray-400 mb-1">Policy Implementation</div>
-                          <div className="text-blue-400 font-semibold">Adoption of recommended policies</div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                            <div className="text-sm text-gray-400 mb-1">Community Engagement</div>
+                            <div className="text-emerald-400 font-semibold">Increased participation in public forums</div>
+                          </div>
+                          <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                            <div className="text-sm text-gray-400 mb-1">Policy Implementation</div>
+                            <div className="text-blue-400 font-semibold">Adoption of recommended policies</div>
+                          </div>
+                          <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                            <div className="text-sm text-gray-400 mb-1">Stakeholder Satisfaction</div>
+                            <div className="text-purple-400 font-semibold">Positive feedback from all parties</div>
+                          </div>
+                          <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
+                            <div className="text-sm text-gray-400 mb-1">Measurable Outcomes</div>
+                            <div className="text-yellow-400 font-semibold">Quantifiable improvements in key areas</div>
+                          </div>
                         </div>
-                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
-                          <div className="text-sm text-gray-400 mb-1">Stakeholder Satisfaction</div>
-                          <div className="text-purple-400 font-semibold">Positive feedback from all parties</div>
-                        </div>
-                        <div className="bg-gray-800/30 border border-gray-600 rounded-lg p-3">
-                          <div className="text-sm text-gray-400 mb-1">Measurable Outcomes</div>
-                          <div className="text-yellow-400 font-semibold">Quantifiable improvements in key areas</div>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
