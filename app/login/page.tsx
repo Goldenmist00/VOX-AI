@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   Eye,
   EyeOff,
@@ -18,7 +20,6 @@ import {
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const [userType, setUserType] = useState<"citizen" | "organization">("citizen")
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -26,18 +27,40 @@ export default function LoginPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  
+  const { login, isAuthenticated, canAccessDashboard } = useAuth()
+  const router = useRouter()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (canAccessDashboard) {
+        router.push('/dashboard')
+      } else {
+        router.push('/')
+      }
+    }
+  }, [isAuthenticated, canAccessDashboard, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
 
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false)
-      // Handle login logic here
-      console.log("Login attempt:", { ...formData, userType })
-    }, 2000)
+    const result = await login(formData.email, formData.password)
+    
+    if (result.success) {
+      // Redirect based on user role
+      if (canAccessDashboard) {
+        router.push('/dashboard')
+      } else {
+        router.push('/')
+      }
+    } else {
+      setError(result.error || 'Login failed')
+    }
+    
+    setIsLoading(false)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

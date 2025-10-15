@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   ArrowRight,
   BarChart3,
@@ -10,11 +11,15 @@ import {
   Network,
   ThumbsDown,
   ThumbsUp,
-  Users
+  Users,
+  User,
+  LogOut,
+  LayoutDashboard
 } from "lucide-react"
 import { VoxAiSvgWordmark } from "@/components/vox-ai-svg-wordmark"
 
 export default function VoxLanding() {
+  const { user, isAuthenticated, logout, canAccessDashboard } = useAuth()
   const [currentCommand, setCurrentCommand] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
   const [matrixChars, setMatrixChars] = useState<string[]>([])
@@ -253,34 +258,67 @@ export default function VoxLanding() {
             </div>
           </a>
           <div className="hidden md:flex items-center gap-8">
-            <a href="/forums" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
-              <MessageSquare className="w-4 h-4" />
-              <span>Forums</span>
-              <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-emerald-400/20 transition-all duration-300 group-hover:w-full" />
-            </a>
+            {isAuthenticated && (
+              <>
+                <a href="/forums" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Forums</span>
+                  <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-emerald-400/20 transition-all duration-300 group-hover:w-full" />
+                </a>
+                <a href="/upload" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                  <FileUp className="w-4 h-4" />
+                  <span>Upload</span>
+                  <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full" />
+                </a>
+                {canAccessDashboard && (
+                  <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                    <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-purple-400 transition-all duration-300 group-hover:w-full" />
+                  </a>
+                )}
+              </>
+            )}
             <a href="#how" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
               <BarChart3 className="w-4 h-4" />
               <span>How it works</span>
               <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full" />
             </a>
-            <a href="#cta" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
-              <ArrowRight className="w-4 h-4" />
-              <span>Explore</span>
-              <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-emerald-400/20 transition-all duration-300 group-hover:w-full" />
-            </a>
           </div>
-          <a
-            href="/login"
-            className="group relative cursor-pointer"
-            aria-label="Login"
-            title="Login"
-          >
-            <div className="absolute inset-0 border border-emerald-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
-            <div className="relative border border-emerald-400/60 bg-transparent text-white font-medium px-4 py-2 text-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-              <LogIn className="w-4 h-4 text-emerald-400" />
-              <span>Login</span>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-300">
+                <User className="w-4 h-4" />
+                <span>{user?.firstName} {user?.lastName}</span>
+                <span className="text-gray-500">({user?.role})</span>
+              </div>
+              <button
+                onClick={logout}
+                className="group relative cursor-pointer"
+                aria-label="Logout"
+                title="Logout"
+              >
+                <div className="absolute inset-0 border border-red-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-red-400 group-hover:shadow-lg group-hover:shadow-red-400/20" />
+                <div className="relative border border-red-400/60 bg-transparent text-white font-medium px-4 py-2 text-sm transition-all duration-300 group-hover:border-red-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
+                  <LogOut className="w-4 h-4 text-red-400" />
+                  <span>Logout</span>
+                </div>
+              </button>
             </div>
-          </a>
+          ) : (
+            <a
+              href="/login"
+              className="group relative cursor-pointer"
+              aria-label="Login"
+              title="Login"
+            >
+              <div className="absolute inset-0 border border-emerald-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
+              <div className="relative border border-emerald-400/60 bg-transparent text-white font-medium px-4 py-2 text-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
+                <LogIn className="w-4 h-4 text-emerald-400" />
+                <span>Login</span>
+              </div>
+            </a>
+          )}
         </div>
       </nav>
 
