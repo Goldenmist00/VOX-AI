@@ -103,9 +103,9 @@ export default function DocsPage() {
                   <span className="text-white">npm install -g hexa-cli</span>
                 </div>
                 {copiedStates["install-cmd"] ? (
-                  <Check className="w-4 h-4 text-green-400" />
+                  <Check className="w-4 h-4 text-white" />
                 ) : (
-                  <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                  <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                 )}
               </div>
             </div>
@@ -128,9 +128,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli init my-project</span>
                   </div>
                   {copiedStates["init-cmd"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
                 <div
@@ -142,9 +142,9 @@ export default function DocsPage() {
                     <span className="text-white">cd my-project</span>
                   </div>
                   {copiedStates["cd-cmd"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
                 <div
@@ -158,9 +158,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli generate --model gpt-5 "Create a React component"</span>
                   </div>
                   {copiedStates["generate-cmd"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -214,9 +214,9 @@ export default function DocsPage() {
                     <span className="text-white">npm install -g hexa-cli</span>
                   </div>
                   {copiedStates["npm-install"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -233,9 +233,9 @@ export default function DocsPage() {
                     <span className="text-white">yarn global add hexa-cli</span>
                   </div>
                   {copiedStates["yarn-install"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -280,9 +280,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli --version</span>
                   </div>
                   {copiedStates["version-check"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -311,9 +311,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli config set model gpt-5</span>
                   </div>
                   {copiedStates["config-model"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
                 <div
@@ -325,9 +325,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli config set auto-review true</span>
                   </div>
                   {copiedStates["config-review"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -402,9 +402,9 @@ export default function DocsPage() {
                   <span className="text-white">hexa-cli generate [prompt]</span>
                 </div>
                 {copiedStates["basic-generate"] ? (
-                  <Check className="w-4 h-4 text-green-400" />
+                  <Check className="w-4 h-4 text-white" />
                 ) : (
-                  <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                  <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                 )}
               </div>
             </div>
@@ -452,9 +452,9 @@ export default function DocsPage() {
                       </span>
                     </div>
                     {copiedStates["example-navbar"] ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                      <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                     )}
                   </div>
                 </div>
@@ -476,9 +476,9 @@ export default function DocsPage() {
                       </span>
                     </div>
                     {copiedStates["example-api"] ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                      <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                     )}
                   </div>
                 </div>
@@ -500,9 +500,9 @@ export default function DocsPage() {
                       </span>
                     </div>
                     {copiedStates["example-interactive"] ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                      <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                     )}
                   </div>
                 </div>
@@ -577,9 +577,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli model list</span>
                   </div>
                   {copiedStates["model-list"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
                 <div
@@ -591,9 +591,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli model set gpt-5</span>
                   </div>
                   {copiedStates["model-set"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
                 <div
@@ -605,9 +605,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli model status</span>
                   </div>
                   {copiedStates["model-status"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -639,9 +639,9 @@ export default function DocsPage() {
                       <span className="text-white">code --install-extension hexa-cli.vscode-extension</span>
                     </div>
                     {copiedStates["vscode-install"] ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                      <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                     )}
                   </div>
                   <div className="text-sm text-gray-400">
@@ -668,9 +668,9 @@ export default function DocsPage() {
                     <span className="text-white">hexa-cli ide setup jetbrains</span>
                   </div>
                   {copiedStates["jetbrains-setup"] ? (
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-white" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                    <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                   )}
                 </div>
               </div>
@@ -688,9 +688,9 @@ export default function DocsPage() {
                       <span className="text-white">hexa-cli completion bash {">"} ~/.bashrc</span>
                     </div>
                     {copiedStates["bash-completion"] ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                      <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                     )}
                   </div>
                   <div
@@ -702,9 +702,9 @@ export default function DocsPage() {
                       <span className="text-white">hexa-cli completion zsh {">"} ~/.zshrc</span>
                     </div>
                     {copiedStates["zsh-completion"] ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <Check className="w-4 h-4 text-white" />
                     ) : (
-                      <Copy className="w-4 h-4 text-gray-400 hover:text-white transition-colors" />
+                      <Copy className="w-4 h-4 text-white hover:text-white transition-colors" />
                     )}
                   </div>
                 </div>
@@ -811,9 +811,9 @@ export default function DocsPage() {
                       setSidebarOpen(false)
                     }}
                   >
-                    <section.icon className="w-5 h-5 text-gray-400" />
+                    <section.icon className="w-5 h-5 text-white" />
                     <span className="text-white font-medium">{section.title}</span>
-                    <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
+                    <ChevronRight className="w-4 h-4 text-white ml-auto" />
                   </div>
 
                   <div className="ml-8 mt-2 space-y-1">

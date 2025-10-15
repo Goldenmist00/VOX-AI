@@ -23,7 +23,10 @@ import {
   Hash,
   BarChart3,
   Brain,
-  Sparkles
+  Sparkles,
+  Home,
+  Upload,
+  LayoutDashboard
 } from "lucide-react"
 
 export default function ForumsPage() {
@@ -124,22 +127,34 @@ export default function ForumsPage() {
                 <span className="text-xl font-bold text-blue-400">AI</span>
               </div>
             </a>
-            <div className="hidden md:flex items-center gap-6">
-              <a href="/" className="text-gray-400 hover:text-white transition-colors">Home</a>
-              <a href="/forums" className="text-blue-400 font-medium">Forums</a>
-              <a href="/upload" className="text-gray-400 hover:text-white transition-colors">Upload</a>
-              <a href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</a>
+            <div className="hidden md:flex items-center gap-8">
+              <a href="/" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                <Home className="w-4 h-4" />
+                <span>Home</span>
+              </a>
+              <a href="/forums" className="flex items-center gap-2 text-blue-400 font-medium px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <MessageSquare className="w-4 h-4" />
+                <span>Forums</span>
+              </a>
+              <a href="/upload" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                <Upload className="w-4 h-4" />
+                <span>Upload</span>
+              </a>
+              <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard</span>
+              </a>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <Bell className="w-5 h-5" />
+              <Bell className="w-5 h-5 text-white" />
             </button>
             <button
               onClick={() => setUserType(userType === "citizen" ? "ngo" : "citizen")}
               className="flex items-center gap-2 p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
             >
-              <User className="w-5 h-5" />
+              <User className="w-5 h-5 text-white" />
               <span className="text-sm">{userType === "citizen" ? "Citizen" : "NGO"}</span>
             </button>
           </div>
@@ -162,7 +177,7 @@ export default function ForumsPage() {
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto mb-8">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white" />
                 <input
                   type="text"
                   placeholder="Search topics (e.g., Climate Policy, Internet Censorship...)"
@@ -176,7 +191,7 @@ export default function ForumsPage() {
               <button className="group relative cursor-pointer">
                 <div className="absolute inset-0 border border-blue-500/40 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
                 <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-5 h-5 text-white" />
                   <span>Start Debate</span>
                 </div>
               </button>
@@ -184,7 +199,7 @@ export default function ForumsPage() {
               <button className="group relative cursor-pointer">
                 <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
                 <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-emerald-300" />
+                  <MessageSquare className="w-5 h-5 text-white" />
                   <span>Join Debate</span>
                 </div>
               </button>
@@ -215,7 +230,7 @@ export default function ForumsPage() {
                           : "text-gray-400 hover:text-white hover:bg-gray-800"
                           }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-4 h-4 text-white" />
                         <span>{label}</span>
                       </button>
                     ))}
@@ -232,7 +247,7 @@ export default function ForumsPage() {
                             <h3 className="text-xl font-bold text-white">{debate.title}</h3>
                             {debate.trending && (
                               <span className="flex items-center gap-1 text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">
-                                <TrendingUp className="w-3 h-3" />
+                                <TrendingUp className="w-3 h-3 text-white" />
                                 Trending
                               </span>
                             )}
@@ -241,7 +256,7 @@ export default function ForumsPage() {
                           <div className="flex items-center gap-2 mb-4">
                             {debate.tags.map((tag) => (
                               <span key={tag} className="flex items-center gap-1 text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded-full">
-                                <Hash className="w-3 h-3" />
+                                <Hash className="w-3 h-3 text-white" />
                                 {tag}
                               </span>
                             ))}
@@ -249,11 +264,11 @@ export default function ForumsPage() {
                         </div>
                         <div className="text-right">
                           <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                            <Users className="w-4 h-4" />
+                            <Users className="w-4 h-4 text-white" />
                             <span>{debate.participants.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <MessageSquare className="w-4 h-4" />
+                            <MessageSquare className="w-4 h-4 text-white" />
                             <span>{debate.messages}</span>
                           </div>
                         </div>
@@ -289,13 +304,13 @@ export default function ForumsPage() {
                       {/* Action Buttons */}
                       <div className="flex items-center justify-between">
                         <button className="flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-500/30 transition-colors">
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 h-4 text-white" />
                           View Debate
                         </button>
 
                         {userType === "ngo" && (
                           <button className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg hover:bg-emerald-500/30 transition-colors">
-                            <Target className="w-4 h-4" />
+                            <Target className="w-4 h-4 text-white" />
                             🔹 Adopt This Issue
                           </button>
                         )}
@@ -310,7 +325,7 @@ export default function ForumsPage() {
                 {/* AI Keywords */}
                 <div className="bg-gray-950/60 border border-gray-700 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Brain className="w-5 h-5 text-blue-400" />
+                    <Brain className="w-5 h-5 text-white" />
                     <h3 className="font-bold">AI Keywords</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -331,7 +346,7 @@ export default function ForumsPage() {
                 {/* Real-time Sentiment */}
                 <div className="bg-gray-950/60 border border-gray-700 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <BarChart3 className="w-5 h-5 text-emerald-400" />
+                    <BarChart3 className="w-5 h-5 text-white" />
                     <h3 className="font-bold">Live Sentiment</h3>
                   </div>
                   <div className="space-y-3">
@@ -373,7 +388,7 @@ export default function ForumsPage() {
                 {/* Leaderboard */}
                 <div className="bg-gray-950/60 border border-gray-700 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Award className="w-5 h-5 text-yellow-400" />
+                    <Award className="w-5 h-5 text-white" />
                     <h3 className="font-bold">Top Contributors</h3>
                   </div>
                   <div className="space-y-3">
