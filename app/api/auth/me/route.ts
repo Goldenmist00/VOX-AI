@@ -12,9 +12,11 @@ export async function GET(req: NextRequest) {
     // Debug: Log all cookies
     console.log('All cookies received:', req.cookies.getAll().map(c => `${c.name}=${c.value ? 'exists' : 'empty'}`))
     
-    // Get token from cookies
-    const token = req.cookies.get('auth-token')?.value
+    // Get token from cookies - try both cookie names
+    const token = req.cookies.get('vox-ai-auth')?.value || req.cookies.get('vox-ai-auth-debug')?.value
     console.log('Auth token from cookies:', token ? 'Token exists' : 'No token')
+    console.log('vox-ai-auth cookie:', req.cookies.get('vox-ai-auth')?.value ? 'exists' : 'missing')
+    console.log('vox-ai-auth-debug cookie:', req.cookies.get('vox-ai-auth-debug')?.value ? 'exists' : 'missing')
     console.log('JWT_SECRET set:', !!process.env.JWT_SECRET)
 
     if (!token) {

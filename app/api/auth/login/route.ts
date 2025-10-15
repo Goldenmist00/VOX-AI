@@ -65,11 +65,21 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
 
-    response.cookies.set('auth-token', token, {
+    // Try multiple cookie setting approaches
+    response.cookies.set('vox-ai-auth', token, {
       httpOnly: true,
-      secure: false, // Set to false for development
+      secure: false,
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    })
+    
+    // Also try setting without httpOnly for debugging
+    response.cookies.set('vox-ai-auth-debug', token, {
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/'
     })
 
