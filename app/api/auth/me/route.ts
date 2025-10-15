@@ -32,9 +32,13 @@ export async function GET(req: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     const decoded = payload as any
     console.log('Token decoded successfully:', { userId: decoded.userId, email: decoded.email })
+    console.log('UserId type:', typeof decoded.userId)
+    console.log('UserId value:', decoded.userId)
 
-    // Find user
-    const user = await User.findById(decoded.userId)
+    // Find user - ensure userId is a string
+    const userId = typeof decoded.userId === 'string' ? decoded.userId : decoded.userId.toString()
+    console.log('Using userId for query:', userId)
+    const user = await User.findById(userId)
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
