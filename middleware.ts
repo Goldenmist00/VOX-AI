@@ -12,7 +12,9 @@ const authRoutes = ['/login', '/signup']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const token = request.cookies.get('auth-token')?.value
+  const token = request.cookies.get('vox-ai-auth')?.value || request.cookies.get('vox-ai-auth-debug')?.value
+
+  console.log(`Middleware: ${pathname} - Token: ${token ? 'exists' : 'missing'}`)
 
   // Check if the route requires authentication
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
@@ -23,10 +25,13 @@ export function middleware(request: NextRequest) {
   if (token) {
     try {
       user = jwt.verify(token, JWT_SECRET) as any
+      console.log(`Middleware: User verified - ${user.email} (${user.role})`)
     } catch (error) {
+      console.log('Middleware: Token verification failed:', error)
       // Token is invalid, clear it
       const response = NextResponse.next()
-      response.cookies.delete('auth-token')
+      response.cookies.delete('vox-ai-auth')
+      response.cookies.delete('vox-ai-auth-debug')
       return response
     }
   }
