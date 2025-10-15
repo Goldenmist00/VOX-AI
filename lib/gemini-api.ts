@@ -137,7 +137,7 @@ export async function analyzeDocument(content: string): Promise<AnalysisResult> 
         }
       ],
       "summary": "Comprehensive summary of the discussion",
-      "solution": "Proposed solutions or recommendations based on the discussion",
+      "solution": "Detailed proposed solutions with clear implementation steps, stakeholder involvement, and expected outcomes. Structure the solution with specific recommendations, timelines, and success metrics.",
       "sentiment": {
         "positive": 45,
         "neutral": 32,
@@ -155,8 +155,9 @@ export async function analyzeDocument(content: string): Promise<AnalysisResult> 
     1. Identifying the main topic and key arguments
     2. Analyzing sentiment for each major point
     3. Identifying key contributors and their roles
-    4. Providing actionable insights and recommendations
+    4. Providing actionable insights and recommendations with specific implementation steps
     5. Calculating overall sentiment distribution
+    6. For the solution, provide structured recommendations with clear timelines, stakeholder roles, and success metrics
 
     Return only valid JSON without any additional text or formatting.
     `;
