@@ -37,9 +37,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate JWT token
+    // Generate JWT token - ensure userId is a proper string
+    const userIdString = String(user._id.toHexString())
+    console.log('Creating JWT with userId:', userIdString, 'Type:', typeof userIdString)
+    
     const token = await new SignJWT({ 
-      userId: user._id.toString(), // Convert ObjectId to string
+      userId: userIdString, // Ensure it's a string
       email: user.email, 
       role: user.role 
     })

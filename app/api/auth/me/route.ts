@@ -35,8 +35,29 @@ export async function GET(req: NextRequest) {
     console.log('UserId type:', typeof decoded.userId)
     console.log('UserId value:', decoded.userId)
 
-    // Find user - ensure userId is a string
-    const userId = typeof decoded.userId === 'string' ? decoded.userId : decoded.userId.toString()
+    // Find user - ensure userId is a valid string
+    let userId = decoded.userId
+    if (typeof userId !== 'string') {
+      // If it's an object with buffer (ObjectId), convert it properly
+      if (userId && typeof userId === 'object' && userId.buffer) {
+        // Convert buffer to hex string
+        const buffer = Buffer.from(Object.values(userId.buffer))
+        userId = buffer.toString('hex')
+        console.log('Converted ObjectId buffer to hex string:', userId)
+      } else {
+        userId = String(userId)
+      }
+    }
+    
+    // Additional check to ensure it's not "[object Object]" and is valid length
+    if (userId === '[object Object]' || !userId || userId.length !== 24) {
+      console.log('Invalid userId format:', userId)
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 401 }
+      )
+    }
+    
     console.log('Using userId for query:', userId)
     const user = await User.findById(userId)
     if (!user) {

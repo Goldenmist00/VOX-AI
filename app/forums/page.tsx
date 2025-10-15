@@ -27,15 +27,17 @@ import {
   Home,
   Upload,
   LayoutDashboard,
-  X
+  X,
+  LogOut
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 import CommentSystem from "../components/CommentSystem"
 import DebateViewModal from "../components/DebateViewModal"
 
 export default function ForumsPage() {
+  const { user, logout } = useAuth()
   const [activeFilter, setActiveFilter] = useState("trending")
   const [selectedDebate, setSelectedDebate] = useState<number | null>(null)
-  const [userType, setUserType] = useState<"citizen" | "ngo">("citizen")
   const [sentimentData, setSentimentData] = useState({ positive: 45, negative: 25, neutral: 30 })
   const [keywords, setKeywords] = useState([
     "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
@@ -295,13 +297,32 @@ export default function ForumsPage() {
             <button className="p-2 text-gray-400 hover:text-white transition-colors">
               <Bell className="w-5 h-5 text-white" />
             </button>
-            <button
-              onClick={() => setUserType(userType === "citizen" ? "ngo" : "citizen")}
-              className="flex items-center gap-2 p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
-            >
-              <User className="w-5 h-5 text-white" />
-              <span className="text-sm">{userType === "citizen" ? "Citizen" : "NGO"}</span>
-            </button>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <User className="w-4 h-4" />
+                  <span>{user.firstName} {user.lastName}</span>
+                  <span className="text-gray-500">({user.role})</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="group relative cursor-pointer"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <div className="absolute inset-0 border border-red-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-red-400 group-hover:shadow-lg group-hover:shadow-red-400/20" />
+                  <div className="relative border border-red-400/60 bg-transparent text-white font-medium px-3 py-1.5 text-sm transition-all duration-300 group-hover:border-red-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
+                    <LogOut className="w-4 h-4 text-red-400" />
+                    <span>Logout</span>
+                  </div>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-2 bg-gray-800 rounded-full">
+                <User className="w-5 h-5 text-white" />
+                <span className="text-sm">Guest</span>
+              </div>
+            )}
           </div>
         </div>
       </nav>
