@@ -522,11 +522,19 @@ function AnalysisContent() {
                     <h3 className="text-lg font-bold">Top Contributors</h3>
                   </div>
                   <div className="space-y-3">
-                    {analysisResults.contributors.slice(0, 5).map((contributor: any, index: number) => (
+                    {analysisResults.contributors
+                      .sort((a: any, b: any) => b.score - a.score)
+                      .slice(0, 5)
+                      .map((contributor: any, index: number) => (
                       <div key={index} className="relative group">
                         <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors cursor-pointer">
-                          <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                            <span className="text-blue-400 font-semibold text-sm">{contributor.avatar}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold text-xs">#{index + 1}</span>
+                            </div>
+                            <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-blue-400 font-semibold text-sm">{contributor.avatar}</span>
+                            </div>
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
@@ -547,12 +555,18 @@ function AnalysisContent() {
                         <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-lg z-20 min-w-[300px]">
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
-                                <span className="text-blue-400 font-semibold text-lg">{contributor.avatar}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white font-bold text-sm">#{index + 1}</span>
+                                </div>
+                                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                  <span className="text-blue-400 font-semibold text-lg">{contributor.avatar}</span>
+                                </div>
                               </div>
                               <div>
                                 <h4 className="font-semibold text-white">{contributor.name}</h4>
                                 <p className="text-sm text-gray-400">{contributor.role}</p>
+                                <p className="text-xs text-yellow-400">Ranked #{index + 1} Contributor</p>
                               </div>
                             </div>
                             
