@@ -29,6 +29,7 @@ import {
   LayoutDashboard,
   X
 } from "lucide-react"
+import CommentSystem from "../components/CommentSystem"
 
 export default function ForumsPage() {
   const [activeFilter, setActiveFilter] = useState("trending")
@@ -386,6 +387,13 @@ export default function ForumsPage() {
                           </button>
                         )}
                       </div>
+
+                      {/* Comment System */}
+                      <CommentSystem 
+                        debateId={debate.id}
+                        debateTopic={debate.title}
+                        isJoined={joinedDebates.has(debate.id)}
+                      />
                     </div>
                   ))}
                 </div>
