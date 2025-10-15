@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     )
 
     // Clear the auth token cookie
-    response.cookies.set('auth-token', '', {
+    response.cookies.set('vox-ai-auth', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

@@ -48,18 +48,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      console.log('AuthContext: Checking authentication...')
       const response = await fetch('/api/auth/me', {
         credentials: 'include'
       })
 
+      console.log('AuthContext: Response status:', response.status)
       if (response.ok) {
         const data = await response.json()
+        console.log('AuthContext: User authenticated:', data.user.email)
         setUser(data.user)
       } else {
+        console.log('AuthContext: User not authenticated')
         setUser(null)
       }
     } catch (error) {
-      console.error('Auth check failed:', error)
+      console.error('AuthContext: Auth check failed:', error)
       setUser(null)
     } finally {
       setLoading(false)
@@ -68,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('AuthContext: Attempting login for:', email)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -78,14 +83,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
       const data = await response.json()
+      console.log('AuthContext: Login response status:', response.status)
 
       if (response.ok) {
+        console.log('AuthContext: Login successful, setting user:', data.user.email)
         setUser(data.user)
         return { success: true }
       } else {
+        console.log('AuthContext: Login failed:', data.error)
         return { success: false, error: data.error }
       }
     } catch (error) {
+      console.error('AuthContext: Login network error:', error)
       return { success: false, error: 'Network error' }
     }
   }

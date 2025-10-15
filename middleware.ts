@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/upload', '/forums', '/analysis']
@@ -10,9 +10,11 @@ const protectedRoutes = ['/dashboard', '/upload', '/forums', '/analysis']
 // Routes that should redirect authenticated users
 const authRoutes = ['/login', '/signup']
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const token = request.cookies.get('auth-token')?.value
+  const token = request.cookies.get('vox-ai-auth')?.value || request.cookies.get('vox-ai-auth-debug')?.value
+
+  console.log(`Middleware: ${pathname} - Token: ${token ? 'exists' : 'missing'}`)
 
   // Check if the route requires authentication
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
@@ -22,11 +24,15 @@ export function middleware(request: NextRequest) {
   let user = null
   if (token) {
     try {
-      user = jwt.verify(token, JWT_SECRET) as any
+      const { payload } = await jwtVerify(token, JWT_SECRET)
+      user = payload as any
+      console.log(`Middleware: User verified - ${user.email} (${user.role})`)
     } catch (error) {
+      console.log('Middleware: Token verification failed:', error)
       // Token is invalid, clear it
       const response = NextResponse.next()
-      response.cookies.delete('auth-token')
+      response.cookies.delete('vox-ai-auth')
+      response.cookies.delete('vox-ai-auth-debug')
       return response
     }
   }

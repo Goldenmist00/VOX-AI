@@ -25,7 +25,7 @@ import {
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [userType, setUserType] = useState<"citizen" | "ngo" | "policymaker">("citizen")
+  const [userType, setUserType] = useState<"citizen" | "organization">("citizen")
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -67,7 +67,7 @@ export default function SignupPage() {
     if (!formData.password) newErrors.password = "Password is required"
     if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters"
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match"
-    if (userType !== 'citizen' && !formData.organization.trim()) newErrors.organization = "Organization is required for NGO/Policymaker accounts"
+    if (userType !== 'citizen' && !formData.organization.trim()) newErrors.organization = "Organization is required for organization accounts"
     if (!formData.agreeToTerms) newErrors.agreeToTerms = "You must agree to the terms and conditions"
 
     if (Object.keys(newErrors).length > 0) {
@@ -82,7 +82,7 @@ export default function SignupPage() {
       password: formData.password,
       firstName: formData.firstName,
       lastName: formData.lastName,
-      role: userType,
+      role: userType === 'organization' ? 'ngo' : userType, // Convert organization to ngo
       organization: userType !== 'citizen' ? formData.organization : undefined,
       position: userType !== 'citizen' ? formData.position : undefined,
     })

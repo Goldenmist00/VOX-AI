@@ -29,13 +29,15 @@ import {
   Cpu,
   Home,
   Upload,
-  LayoutDashboard
+  LayoutDashboard,
+  LogOut
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 function AnalysisContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [userType, setUserType] = useState<"citizen" | "ngo">("citizen")
+  const { user, logout } = useAuth()
   const [copied, setCopied] = useState(false)
   const [showActionPlan, setShowActionPlan] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -200,19 +202,44 @@ function AnalysisContent() {
                 <Upload className="w-4 h-4" />
                 <span>Upload</span>
               </a>
-              <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
-              </a>
+              {(user?.role === "ngo" || user?.role === "policymaker") && (
+                <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </a>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
             <button className="p-2 text-gray-400 hover:text-white transition-colors">
               <Bell className="w-5 h-5 text-white" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <User className="w-5 h-5 text-white" />
-            </button>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <User className="w-4 h-4" />
+                  <span>{user.firstName} {user.lastName}</span>
+                  <span className="text-gray-500">({user.role})</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="group relative cursor-pointer"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <div className="absolute inset-0 border border-red-500/40 bg-gray-900/20 transition-all duration-300 group-hover:border-red-400 group-hover:shadow-lg group-hover:shadow-red-400/20" />
+                  <div className="relative border border-red-400/60 bg-transparent text-white font-medium px-3 py-1.5 text-sm transition-all duration-300 group-hover:border-red-300 group-hover:bg-gray-900/30 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
+                    <LogOut className="w-4 h-4 text-red-400" />
+                    <span>Logout</span>
+                  </div>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-2 bg-gray-800 rounded-full">
+                <User className="w-5 h-5 text-white" />
+                <span className="text-sm">Guest</span>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -651,7 +678,7 @@ function AnalysisContent() {
                 </div>
 
                 {/* Action Buttons */}
-                {userType === "ngo" && (
+                {user && (user.role === "ngo" || user.role === "policymaker") && (
                   <div className="bg-gray-950 border border-gray-700 rounded-lg p-6">
                     <h3 className="text-lg font-bold mb-4">Take Action</h3>
                     <div className="space-y-3">

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
-import jwt from 'jsonwebtoken'
+import { SignJWT } from 'jose'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,16 +37,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user._id, 
-        email: user.email, 
-        role: user.role 
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    )
+    // Generate JWT token - ensure userId is a proper string
+    const userIdString = String(user._id.toHexString())
+    console.log('Creating JWT with userId:', userIdString, 'Type:', typeof userIdString)
+    
+    const token = await new SignJWT({ 
+      userId: userIdString, // Ensure it's a string
+      email: user.email, 
+      role: user.role 
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('7d')
+      .setIssuedAt()
+      .sign(JWT_SECRET)
 
     // Set HTTP-only cookie
     const response = NextResponse.json(
@@ -65,12 +68,27 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
 
-    response.cookies.set('auth-token', token, {
+    // Try multiple cookie setting approaches
+    response.cookies.set('vox-ai-auth', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
     })
+    
+    // Also try setting without httpOnly for debugging
+    response.cookies.set('vox-ai-auth-debug', token, {
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    })
+
+    console.log('Login: Cookie set successfully')
+    console.log('Login: JWT_SECRET available:', !!process.env.JWT_SECRET)
+    console.log('Login: Token generated:', token ? 'Yes' : 'No')
 
     return response
 
