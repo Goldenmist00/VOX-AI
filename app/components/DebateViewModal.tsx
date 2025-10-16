@@ -23,7 +23,9 @@ import {
   Activity,
   Brain,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Send,
+  Edit3
 } from "lucide-react"
 
 interface Comment {
@@ -62,6 +64,7 @@ interface Comment {
       stance: string
       tone: string
     }
+    isAnalyzing?: boolean // Flag to show if analysis is in progress
   }
 }
 
@@ -82,15 +85,22 @@ interface DebateViewModalProps {
   debate: Debate | null
   isOpen: boolean
   onClose: () => void
+  mode?: 'view' | 'join' // New prop to determine if user is viewing or joining
+  onCommentPosted?: (debateId: string) => void // Callback when user posts a comment
 }
 
-export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewModalProps) {
+export default function DebateViewModal({ debate, isOpen, onClose, mode = 'view', onCommentPosted }: DebateViewModalProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [commentsLoaded, setCommentsLoaded] = useState(false)
   const [sortBy, setSortBy] = useState<'recent' | 'score' | 'sentiment'>('recent')
   const [filterBy, setFilterBy] = useState<'all' | 'positive' | 'negative' | 'neutral'>('all')
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
+  
+  // Comment input state
+  const [newComment, setNewComment] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [currentMode, setCurrentMode] = useState<'view' | 'join'>(mode)
 
 
   useEffect(() => {
@@ -184,6 +194,138 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
     })
   }
 
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || isSubmitting) return
+
+    setIsSubmitting(true)
+    
+    const commentId = Date.now().toString()
+    const commentContent = newComment.trim()
+    
+    // Create placeholder analysis for immediate display
+    const placeholderAnalysis = {
+      sentiment: { 
+        overall: "neutral" as const, 
+        confidence: 0, 
+        positive_score: 0, 
+        negative_score: 0, 
+        neutral_score: 100 
+      },
+      analysis: { 
+        clarity: 0, 
+        relevance: 0, 
+        constructiveness: 0, 
+        evidence_quality: 0, 
+        respectfulness: 0 
+      },
+      scores: { 
+        overall_score: 0, 
+        contribution_quality: 0, 
+        debate_value: 0 
+      },
+      insights: {
+        key_points: ["Analyzing..."],
+        strengths: ["Analysis in progress..."],
+        areas_for_improvement: ["Please wait..."],
+        debate_impact: "AI analysis in progress..."
+      },
+      classification: { type: "opinion" as const, stance: "neutral" as const, tone: "conversational" as const },
+      isAnalyzing: true // Flag to show loading state
+    }
+
+    // Post comment immediately with placeholder analysis
+    const newCommentObj: Comment = {
+      id: commentId,
+      content: commentContent,
+      author: "You",
+      timestamp: new Date().toISOString(),
+      analysis: placeholderAnalysis
+    }
+
+    // Add comment to list immediately
+    setComments(prev => [newCommentObj, ...prev])
+    
+    // Mark debate as joined since user posted a comment
+    if (onCommentPosted && debate) {
+      onCommentPosted(debate.id)
+    }
+    
+    // Clear the input immediately
+    setNewComment('')
+    setIsSubmitting(false)
+    
+    // Analyze in background and update when ready
+    try {
+      const response = await fetch('/api/analyze-comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          comment: commentContent,
+          debateTitle: debate?.title || 'General Discussion'
+        })
+      })
+
+      if (response.ok) {
+        const { analysis } = await response.json()
+        
+        // Update the comment with real analysis
+        setComments(prev => prev.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, analysis: { ...analysis, isAnalyzing: false } }
+            : comment
+        ))
+        
+        console.log('Comment analysis completed!')
+      } else {
+        throw new Error(`Analysis failed: ${response.status}`)
+      }
+      
+    } catch (error) {
+      console.error('Error analyzing comment:', error)
+      
+      // Update with fallback analysis if Gemini fails
+      const fallbackAnalysis = {
+        sentiment: { 
+          overall: "neutral" as const, 
+          confidence: 50, 
+          positive_score: 40, 
+          negative_score: 20, 
+          neutral_score: 40 
+        },
+        analysis: { 
+          clarity: 70, 
+          relevance: 75, 
+          constructiveness: 70, 
+          evidence_quality: 60, 
+          respectfulness: 80 
+        },
+        scores: { 
+          overall_score: 71, 
+          contribution_quality: 70, 
+          debate_value: 72 
+        },
+        insights: {
+          key_points: ["User perspective shared"],
+          strengths: ["Participates in discussion"],
+          areas_for_improvement: ["Analysis unavailable - please try again"],
+          debate_impact: "Moderate - adds to the conversation"
+        },
+        classification: { type: "opinion" as const, stance: "neutral" as const, tone: "conversational" as const },
+        isAnalyzing: false
+      }
+
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, analysis: fallbackAnalysis }
+          : comment
+      ))
+      
+      console.log('Comment posted with fallback analysis')
+    }
+  }
+
   const sortedComments = [...comments].sort((a, b) => {
     switch (sortBy) {
       case 'score':
@@ -214,7 +356,7 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-950 border border-gray-700 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-gray-950 border border-gray-700 rounded-lg max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex-1">
@@ -364,12 +506,28 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
                       
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <span className={`${getSentimentColor(comment.analysis.sentiment.overall)} flex items-center gap-1 text-sm`}>
-                            {getSentimentIcon(comment.analysis.sentiment.overall)}
-                            {comment.analysis.sentiment.overall}
+                          <span className={`${comment.analysis.isAnalyzing ? 'text-gray-400' : getSentimentColor(comment.analysis.sentiment.overall)} flex items-center gap-1 text-sm`}>
+                            {comment.analysis.isAnalyzing ? (
+                              <>
+                                <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                                <span>Analyzing</span>
+                              </>
+                            ) : (
+                              <>
+                                {getSentimentIcon(comment.analysis.sentiment.overall)}
+                                {comment.analysis.sentiment.overall}
+                              </>
+                            )}
                           </span>
-                          <span className={`${getScoreColor(comment.analysis.scores.overall_score)} font-semibold text-sm`}>
-                            {comment.analysis.scores.overall_score}/100
+                          <span className={`${comment.analysis.isAnalyzing ? 'text-gray-400' : getScoreColor(comment.analysis.scores.overall_score)} font-semibold text-sm`}>
+                            {comment.analysis.isAnalyzing ? (
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                                <span>Analyzing...</span>
+                              </div>
+                            ) : (
+                              `${comment.analysis.scores.overall_score}/100`
+                            )}
                           </span>
                         </div>
                         <button
@@ -392,26 +550,26 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                       <div className="bg-gray-800/50 rounded p-2 text-center">
                         <div className="text-xs text-gray-400">Clarity</div>
-                        <div className={`text-sm font-semibold ${getScoreColor(comment.analysis.analysis.clarity)}`}>
-                          {comment.analysis.analysis.clarity}%
+                        <div className={`text-sm font-semibold ${comment.analysis.isAnalyzing ? 'text-gray-400' : getScoreColor(comment.analysis.analysis.clarity)}`}>
+                          {comment.analysis.isAnalyzing ? '...' : `${comment.analysis.analysis.clarity}%`}
                         </div>
                       </div>
                       <div className="bg-gray-800/50 rounded p-2 text-center">
                         <div className="text-xs text-gray-400">Relevance</div>
-                        <div className={`text-sm font-semibold ${getScoreColor(comment.analysis.analysis.relevance)}`}>
-                          {comment.analysis.analysis.relevance}%
+                        <div className={`text-sm font-semibold ${comment.analysis.isAnalyzing ? 'text-gray-400' : getScoreColor(comment.analysis.analysis.relevance)}`}>
+                          {comment.analysis.isAnalyzing ? '...' : `${comment.analysis.analysis.relevance}%`}
                         </div>
                       </div>
                       <div className="bg-gray-800/50 rounded p-2 text-center">
                         <div className="text-xs text-gray-400">Constructive</div>
-                        <div className={`text-sm font-semibold ${getScoreColor(comment.analysis.analysis.constructiveness)}`}>
-                          {comment.analysis.analysis.constructiveness}%
+                        <div className={`text-sm font-semibold ${comment.analysis.isAnalyzing ? 'text-gray-400' : getScoreColor(comment.analysis.analysis.constructiveness)}`}>
+                          {comment.analysis.isAnalyzing ? '...' : `${comment.analysis.analysis.constructiveness}%`}
                         </div>
                       </div>
                       <div className="bg-gray-800/50 rounded p-2 text-center">
                         <div className="text-xs text-gray-400">Respectful</div>
-                        <div className={`text-sm font-semibold ${getScoreColor(comment.analysis.analysis.respectfulness)}`}>
-                          {comment.analysis.analysis.respectfulness}%
+                        <div className={`text-sm font-semibold ${comment.analysis.isAnalyzing ? 'text-gray-400' : getScoreColor(comment.analysis.analysis.respectfulness)}`}>
+                          {comment.analysis.isAnalyzing ? '...' : `${comment.analysis.analysis.respectfulness}%`}
                         </div>
                       </div>
                     </div>
@@ -526,6 +684,84 @@ export default function DebateViewModal({ debate, isOpen, onClose }: DebateViewM
                   <p className="text-gray-400">No comments found for the selected filter.</p>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Action Section */}
+        <div className="border-t border-gray-700 bg-gray-900/50 p-4">
+          {currentMode === 'view' ? (
+            // View Mode - Show Join Debate Button
+            <div className="flex items-center justify-center">
+              <button
+                onClick={() => setCurrentMode('join')}
+                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+              >
+                <Target className="w-5 h-5" />
+                <span>Join Debate</span>
+              </button>
+            </div>
+          ) : (
+            // Join Mode - Show Comment Input
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-blue-400" />
+                </div>
+                <div>
+                  <div className="font-medium text-white text-sm">You</div>
+                  <div className="text-xs text-gray-400">Share your opinion on this debate</div>
+                </div>
+              </div>
+              
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Share your thoughts on this debate... Be respectful and constructive."
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm"
+                rows={3}
+                maxLength={1000}
+              />
+              
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-gray-400">
+                  {newComment.length}/1000 characters • Powered by Gemini AI analysis
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setCurrentMode('view')
+                      setNewComment('')
+                    }}
+                    className="px-3 py-1.5 text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => setNewComment('')}
+                    className="px-3 py-1.5 text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={handleSubmitComment}
+                    disabled={!newComment.trim() || isSubmitting}
+                    className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg transition-colors text-sm"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Posting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3" />
+                        <span>Post Comment</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

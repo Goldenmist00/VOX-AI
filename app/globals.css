@@ -117,6 +117,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-black text-white font-mono;
   }
@@ -124,10 +125,12 @@
 
 /* Enhanced terminal animations and effects for black/grey theme with more ASCII animations */
 @keyframes terminal-glow {
+
   0%,
   100% {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 0.6), 0 0 15px rgba(255, 255, 255, 0.4);
   }
+
   50% {
     text-shadow: 0 0 2px rgba(255, 255, 255, 0.6), 0 0 5px rgba(255, 255, 255, 0.4), 0 0 8px rgba(255, 255, 255, 0.2);
   }
@@ -142,6 +145,7 @@
     transform: translateY(-100vh);
     opacity: 1;
   }
+
   100% {
     transform: translateY(100vh);
     opacity: 0;
@@ -153,10 +157,12 @@
 }
 
 @keyframes cursor-blink {
+
   0%,
   50% {
     opacity: 1;
   }
+
   51%,
   100% {
     opacity: 0;
@@ -171,6 +177,7 @@
   0% {
     transform: translateY(-100%);
   }
+
   100% {
     transform: translateY(100vh);
   }
@@ -189,10 +196,12 @@
 }
 
 @keyframes flicker {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.8;
   }
@@ -204,10 +213,12 @@
 
 /* Enhanced ASCII animation keyframes for more dynamic effects */
 @keyframes ascii-pulse {
+
   0%,
   100% {
     opacity: 0.6;
   }
+
   50% {
     opacity: 1;
   }
@@ -218,10 +229,12 @@
     transform: translateX(-10px);
     opacity: 0.5;
   }
+
   50% {
     transform: translateX(0);
     opacity: 1;
   }
+
   100% {
     transform: translateX(10px);
     opacity: 0.5;
@@ -232,21 +245,26 @@
   0% {
     transform: rotate(0deg);
   }
+
   25% {
     transform: rotate(90deg);
   }
+
   50% {
     transform: rotate(180deg);
   }
+
   75% {
     transform: rotate(270deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
 
 @keyframes ascii-bounce {
+
   0%,
   20%,
   50%,
@@ -254,9 +272,11 @@
   100% {
     transform: translateY(0);
   }
+
   40% {
     transform: translateY(-10px);
   }
+
   60% {
     transform: translateY(-5px);
   }
@@ -283,6 +303,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -294,10 +315,12 @@
 
 /* Enhanced hover effects for better interactivity with grey colors only */
 @keyframes pulse-glow {
+
   0%,
   100% {
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4);
   }
@@ -313,12 +336,15 @@
     transform: translateY(-20px);
     opacity: 0;
   }
+
   10% {
     opacity: 1;
   }
+
   90% {
     opacity: 1;
   }
+
   100% {
     transform: translateY(20px);
     opacity: 0;
@@ -375,6 +401,7 @@
   .grid-cols-20 {
     grid-template-columns: repeat(30, minmax(0, 1fr));
   }
+
   .grid-cols-25 {
     grid-template-columns: repeat(35, minmax(0, 1fr));
   }
@@ -384,6 +411,7 @@
   .grid-cols-20 {
     grid-template-columns: repeat(40, minmax(0, 1fr));
   }
+
   .grid-cols-25 {
     grid-template-columns: repeat(50, minmax(0, 1fr));
   }
@@ -424,8 +452,7 @@
 
 .card-interactive:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1px 0
-    rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   background: linear-gradient(145deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
 }
 
@@ -443,13 +470,11 @@
 .terminal-window {
   background: linear-gradient(145deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
   border: 1px solid #333;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0
-    rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
 
 .terminal-window:hover {
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0
-    rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* wordmark style to mimic the outlined, segmented HEXA CLI look for "VOX AI" */
@@ -457,7 +482,8 @@
   /* stroke/outline */
   --vox-stroke: 2px;
   --vox-outline: rgba(255, 255, 255, 1);
-  --vox-line: rgba(0, 0, 0, 0.22); /* darker line to segment the fill */
+  --vox-line: rgba(0, 0, 0, 0.22);
+  /* darker line to segment the fill */
   --vox-fill: rgba(255, 255, 255, 0.98);
 
   position: relative;
@@ -495,4 +521,233 @@
   .logo-voxai {
     --vox-stroke: 3px;
   }
+}
+
+/ * Forums Page Specific Animations */ @keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.keyword-chip {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.keyword-chip:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.keyword-chip:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.keyword-chip:nth-child(4) {
+  animation-delay: 1.5s;
+}
+
+.keyword-chip:nth-child(5) {
+  animation-delay: 2s;
+}
+
+/* Sentiment Bar Animation */
+@keyframes sentiment-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.sentiment-bar {
+  background: linear-gradient(-45deg, #10b981, #34d399, #6ee7b7, #a7f3d0);
+  background-size: 400% 400%;
+  animation: sentiment-flow 3s ease infinite;
+}
+
+/* Debate Card Hover Effects */
+.debate-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.debate-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.debate-card:hover::before {
+  left: 100%;
+}
+
+.debate-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+/* Leaderboard Animation */
+@keyframes rank-glow {
+
+  0%,
+  100% {
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+  }
+
+  50% {
+    text-shadow: 0 0 15px rgba(251, 191, 36, 0.8), 0 0 25px rgba(251, 191, 36, 0.6);
+  }
+}
+
+.rank-number {
+  animation: rank-glow 2s ease-in-out infinite;
+}
+
+/* Real-time Updates */
+@keyframes data-update {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.live-data {
+  animation: data-update 2s ease-in-out infinite;
+}
+
+/* Navigation Active State */
+.nav-active {
+  position: relative;
+}
+
+.nav-active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 1px;
+}
+
+/* Button Hover Enhancements */
+.btn-forums {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-forums::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-forums:hover::before {
+  left: 100%;
+}
+
+/* Floating Elements */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating-element {
+  animation: float 3s ease-in-out infinite;
+}
+
+.floating-element:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.floating-element:nth-child(3) {
+  animation-delay: 2s;
+}
+
+/* Search Bar Focus Effect */
+.search-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+/* Progress Ring Animation */
+@keyframes progress-ring {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+
+  100% {
+    stroke-dasharray: var(--progress) 100;
+  }
+}
+
+.progress-ring {
+  animation: progress-ring 2s ease-out forwards;
+}
+
+/* Reddit Data Section Scrollbar Styling */
+.reddit-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reddit-scroll::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 3px;
+}
+
+.reddit-scroll::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.6);
+  border-radius: 3px;
+}
+
+.reddit-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.8);
+}
+
+/* Ensure smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fix for potential overflow issues */
+.forums-container {
+  overflow-x: hidden;
+  overflow-y: auto;
 }

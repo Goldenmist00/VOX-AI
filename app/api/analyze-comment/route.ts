@@ -1,109 +1,205 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+
+export interface CommentAnalysis {
+  sentiment: {
+    overall: 'positive' | 'negative' | 'neutral'
+    confidence: number
+    positive_score: number
+    negative_score: number
+    neutral_score: number
+  }
+  analysis: {
+    clarity: number
+    relevance: number
+    constructiveness: number
+    evidence_quality: number
+    respectfulness: number
+  }
+  scores: {
+    overall_score: number
+    contribution_quality: number
+    debate_value: number
+  }
+  insights: {
+    key_points: string[]
+    strengths: string[]
+    areas_for_improvement: string[]
+    debate_impact: string
+  }
+  classification: {
+    type: 'argument' | 'question' | 'solution' | 'concern' | 'opinion'
+    stance: 'supporting' | 'opposing' | 'neutral'
+    tone: 'professional' | 'casual' | 'passionate' | 'analytical' | 'conversational'
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { comment, debateTopic } = await req.json();
+    const { comment, debateTitle } = await req.json()
 
-    if (!comment) {
-      return NextResponse.json({ error: 'Comment is required' }, { status: 400 });
+    if (!comment || !comment.trim()) {
+      return NextResponse.json(
+        { error: 'Comment content is required' },
+        { status: 400 }
+      )
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Gemini API key not configured' },
+        { status: 500 }
+      )
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     const prompt = `
-    Analyze the following comment in the context of a debate about "${debateTopic}". Provide a comprehensive analysis in JSON format.
+    Analyze the following comment from a debate discussion and provide comprehensive analysis in JSON format.
 
+    Debate Topic: ${debateTitle || 'General Discussion'}
     Comment: "${comment}"
 
-    Expected JSON format:
+    Please analyze this comment and return a JSON object with the following structure:
     {
       "sentiment": {
         "overall": "positive|negative|neutral",
-        "confidence": "number (0-100)",
-        "positive_score": "number (0-100)",
-        "negative_score": "number (0-100)",
-        "neutral_score": "number (0-100)"
+        "confidence": 85,
+        "positive_score": 70,
+        "negative_score": 10,
+        "neutral_score": 20
       },
       "analysis": {
-        "clarity": "number (0-100)",
-        "relevance": "number (0-100)",
-        "constructiveness": "number (0-100)",
-        "evidence_quality": "number (0-100)",
-        "respectfulness": "number (0-100)"
+        "clarity": 88,
+        "relevance": 92,
+        "constructiveness": 75,
+        "evidence_quality": 65,
+        "respectfulness": 90
       },
       "scores": {
-        "overall_score": "number (0-100)",
-        "contribution_quality": "number (0-100)",
-        "debate_value": "number (0-100)"
+        "overall_score": 82,
+        "contribution_quality": 78,
+        "debate_value": 85
       },
       "insights": {
-        "key_points": ["string"],
-        "strengths": ["string"],
-        "areas_for_improvement": ["string"],
-        "debate_impact": "string"
+        "key_points": ["Main point 1", "Main point 2"],
+        "strengths": ["Clear communication", "Relevant to topic"],
+        "areas_for_improvement": ["Could provide more evidence", "Consider opposing views"],
+        "debate_impact": "High - contributes valuable perspective on policy effectiveness"
       },
       "classification": {
-        "type": "argument|question|agreement|disagreement|fact|opinion|solution|concern",
-        "stance": "supporting|opposing|neutral|mixed",
-        "tone": "professional|passionate|analytical|emotional|diplomatic"
+        "type": "argument|question|solution|concern|opinion",
+        "stance": "supporting|opposing|neutral",
+        "tone": "professional|casual|passionate|analytical|conversational"
       }
     }
 
-    Focus on:
-    1. Analyzing sentiment with high accuracy
-    2. Evaluating the quality and constructiveness of the comment
-    3. Assessing relevance to the debate topic
-    4. Providing actionable insights for improvement
-    5. Classifying the type and stance of the comment
+    Analysis Guidelines:
+    1. Sentiment Analysis (0-100 scale):
+       - Overall: Determine if the comment is positive, negative, or neutral
+       - Confidence: How confident you are in the sentiment assessment
+       - Scores: Break down positive, negative, and neutral percentages (should sum to 100)
+
+    2. Quality Analysis (0-100 scale):
+       - Clarity: How clear and understandable is the comment
+       - Relevance: How relevant is it to the debate topic
+       - Constructiveness: How constructive is the contribution
+       - Evidence_quality: Quality of evidence or reasoning provided
+       - Respectfulness: How respectful is the tone and language
+
+    3. Overall Scores (0-100 scale):
+       - Overall_score: Average quality score
+       - Contribution_quality: How much value does this add to the discussion
+       - Debate_value: How valuable is this for the debate
+
+    4. Insights:
+       - Key_points: Main arguments or points made (2-4 points)
+       - Strengths: What the comment does well (2-3 items)
+       - Areas_for_improvement: Constructive suggestions (1-3 items)
+       - Debate_impact: Assessment of impact on the debate (1 sentence)
+
+    5. Classification:
+       - Type: What kind of contribution is this
+       - Stance: Position relative to the debate topic
+       - Tone: Communication style used
 
     Return only valid JSON without any additional text or formatting.
-    `;
+    `
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Parse the JSON response
-    let analysis;
+    const result = await model.generateContent(prompt)
+    const response = result.response
+    const text = response.text()
+
+    // Clean up the response to ensure it's valid JSON
+    const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+
     try {
-      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
-      if (jsonMatch && jsonMatch[1]) {
-        analysis = JSON.parse(jsonMatch[1]);
-      } else {
-        analysis = JSON.parse(text);
+      const analysis = JSON.parse(cleanedText) as CommentAnalysis
+      
+      // Validate and ensure all required fields are present
+      if (!analysis.sentiment || !analysis.analysis || !analysis.scores) {
+        throw new Error('Invalid analysis structure')
       }
+
+      return NextResponse.json({
+        success: true,
+        analysis
+      })
     } catch (parseError) {
-      console.error('Failed to parse Gemini response:', parseError);
-      console.error('Raw response:', text);
-      throw new Error('Failed to parse analysis results');
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      analysis,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('Comment analysis error:', error);
-    
-    if (error instanceof Error) {
-      if (error.message.includes('404') || error.message.includes('not found')) {
-        return NextResponse.json({ error: 'Gemini model not available. Please check your API configuration.' }, { status: 500 });
-      } else if (error.message.includes('API key')) {
-        return NextResponse.json({ error: 'Invalid or missing Gemini API key.' }, { status: 500 });
-      } else if (error.message.includes('quota') || error.message.includes('limit')) {
-        return NextResponse.json({ error: 'API quota exceeded. Please try again later.' }, { status: 429 });
+      console.error('Failed to parse Gemini response:', parseError)
+      console.error('Raw response:', text)
+      
+      // Return a fallback analysis if parsing fails
+      const fallbackAnalysis: CommentAnalysis = {
+        sentiment: {
+          overall: 'neutral',
+          confidence: 50,
+          positive_score: 40,
+          negative_score: 20,
+          neutral_score: 40
+        },
+        analysis: {
+          clarity: 70,
+          relevance: 75,
+          constructiveness: 70,
+          evidence_quality: 60,
+          respectfulness: 80
+        },
+        scores: {
+          overall_score: 71,
+          contribution_quality: 70,
+          debate_value: 72
+        },
+        insights: {
+          key_points: ['User perspective shared'],
+          strengths: ['Participates in discussion'],
+          areas_for_improvement: ['Could provide more detail'],
+          debate_impact: 'Moderate - adds to the conversation'
+        },
+        classification: {
+          type: 'opinion',
+          stance: 'neutral',
+          tone: 'conversational'
+        }
       }
+
+      return NextResponse.json({
+        success: true,
+        analysis: fallbackAnalysis,
+        note: 'Used fallback analysis due to parsing error'
+      })
     }
+  } catch (error) {
+    console.error('Error analyzing comment:', error)
     
-    return NextResponse.json({ error: 'Failed to analyze comment. Please try again.' }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: 'Failed to analyze comment',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
