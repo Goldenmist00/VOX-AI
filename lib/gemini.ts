@@ -318,10 +318,10 @@ Expected JSON format:
 
 Return only valid JSON.`.trim()
 
-            // Add timeout to prevent hanging (reduced to 8 seconds)
+            // Add timeout to prevent hanging (increased to 15 seconds)
             const analysisPromise = this.model.generateContent(prompt)
             const timeoutPromise = new Promise<never>((_, reject) => {
-                setTimeout(() => reject(new Error('Reddit comment analysis timeout after 8 seconds')), 8000)
+                setTimeout(() => reject(new Error('Reddit comment analysis timeout after 15 seconds')), 15000)
             })
 
             const result = await Promise.race([analysisPromise, timeoutPromise])
