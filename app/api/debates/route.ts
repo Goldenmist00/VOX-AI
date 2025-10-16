@@ -129,13 +129,33 @@ export async function POST(req: NextRequest) {
     }
 
     // Process tags
-    const processedTags = tags 
-      ? tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
-      : []
+    let processedTags: string[] = []
+    if (tags) {
+      // Split by comma and clean up each tag
+      processedTags = tags.split(',')
+        .map((tag: string) => {
+          // Remove # symbols and trim whitespace
+          return tag.replace(/^#+/, '').trim()
+        })
+        .filter((tag: string) => tag.length > 0)
+        .map((tag: string) => {
+          // Truncate tags that are too long
+          return tag.length > 50 ? tag.substring(0, 50) : tag
+        })
+    }
 
     if (processedTags.length > 10) {
       return NextResponse.json(
         { error: 'Maximum 10 tags allowed' },
+        { status: 400 }
+      )
+    }
+
+    // Validate individual tag lengths
+    const invalidTags = processedTags.filter(tag => tag.length > 50)
+    if (invalidTags.length > 0) {
+      return NextResponse.json(
+        { error: `Tags cannot exceed 50 characters: ${invalidTags.join(', ')}` },
         { status: 400 }
       )
     }
