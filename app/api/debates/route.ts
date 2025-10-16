@@ -28,8 +28,14 @@ export async function GET(req: NextRequest) {
 
     const total = await Debate.countDocuments({ isActive: true })
 
+    // Transform debates to include id field for frontend compatibility
+    const transformedDebates = debates.map((debate: any) => ({
+      ...debate,
+      id: debate._id.toString()
+    }))
+
     return NextResponse.json({
-      debates,
+      debates: transformedDebates,
       total,
       hasMore: skip + limit < total
     })
@@ -117,9 +123,15 @@ export async function POST(req: NextRequest) {
     // Populate the createdBy field for response
     await debate.populate('createdBy', 'firstName lastName email role')
 
+    // Transform debate to include id field for frontend compatibility
+    const transformedDebate = {
+      ...debate.toObject(),
+      id: debate._id.toString()
+    }
+
     return NextResponse.json({
       message: 'Debate created successfully',
-      debate
+      debate: transformedDebate
     }, { status: 201 })
 
   } catch (error) {

@@ -18,9 +18,17 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const skip = parseInt(searchParams.get('skip') || '0')
 
-    if (!debateId) {
+    if (!debateId || debateId === 'undefined' || debateId === 'null') {
       return NextResponse.json(
-        { error: 'Debate ID is required' },
+        { error: 'Valid debate ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(debateId)) {
+      return NextResponse.json(
+        { error: 'Invalid debate ID format' },
         { status: 400 }
       )
     }
@@ -76,9 +84,17 @@ export async function POST(req: NextRequest) {
     const { content, debateId, debateTopic } = await req.json()
 
     // Validation
-    if (!content || !debateId) {
+    if (!content || !debateId || debateId === 'undefined' || debateId === 'null') {
       return NextResponse.json(
-        { error: 'Content and debate ID are required' },
+        { error: 'Content and valid debate ID are required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(debateId)) {
+      return NextResponse.json(
+        { error: 'Invalid debate ID format' },
         { status: 400 }
       )
     }
