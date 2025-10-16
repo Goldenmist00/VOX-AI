@@ -46,9 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth()
   }, [])
 
-  const checkAuth = async () => {
+  const checkAuth = async (retryCount = 0) => {
     try {
-      console.log('AuthContext: Checking authentication...')
+      console.log('AuthContext: Checking authentication... (attempt', retryCount + 1, ')')
       const response = await fetch('/api/auth/me', {
         credentials: 'include'
       })
@@ -58,15 +58,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json()
         console.log('AuthContext: User authenticated:', data.user.email)
         setUser(data.user)
+      } else if (response.status === 404 && retryCount < 2) {
+        // Retry on 404 errors (route might not be ready)
+        console.log('AuthContext: 404 error, retrying in 1 second...')
+        setTimeout(() => checkAuth(retryCount + 1), 1000)
+        return
       } else {
         console.log('AuthContext: User not authenticated')
         setUser(null)
       }
     } catch (error) {
       console.error('AuthContext: Auth check failed:', error)
+      if (retryCount < 2) {
+        console.log('AuthContext: Network error, retrying in 1 second...')
+        setTimeout(() => checkAuth(retryCount + 1), 1000)
+        return
+      }
       setUser(null)
     } finally {
-      setLoading(false)
+      if (retryCount === 0) {
+        setLoading(false)
+      }
     }
   }
 

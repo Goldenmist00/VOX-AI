@@ -5,5 +5,5 @@ export async function GET() {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'VOX AI Reddit RSS Integration'
-  })
+  })
 }

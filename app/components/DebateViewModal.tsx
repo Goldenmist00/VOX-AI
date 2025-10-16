@@ -102,63 +102,6 @@ export default function DebateViewModal({ debate, isOpen, onClose, mode = 'view'
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentMode, setCurrentMode] = useState<'view' | 'join'>(mode)
 
-  // Mock comments data - in a real app, this would come from an API
-  const mockComments: Comment[] = [
-    {
-      id: "1",
-      content: "I believe carbon tax is essential for reducing emissions. The economic benefits outweigh the costs, and we need immediate action on climate change.",
-      author: "ClimateAdvocate",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      analysis: {
-        sentiment: { overall: "positive", confidence: 89, positive_score: 85, negative_score: 5, neutral_score: 10 },
-        analysis: { clarity: 92, relevance: 95, constructiveness: 88, evidence_quality: 75, respectfulness: 90 },
-        scores: { overall_score: 88, contribution_quality: 85, debate_value: 90 },
-        insights: {
-          key_points: ["Carbon tax effectiveness", "Economic cost-benefit analysis", "Climate urgency"],
-          strengths: ["Clear position", "Constructive tone", "Relevant to topic"],
-          areas_for_improvement: ["Could provide more specific data", "Consider opposing viewpoints"],
-          debate_impact: "High - contributes valuable perspective on policy effectiveness"
-        },
-        classification: { type: "argument", stance: "supporting", tone: "professional" }
-      }
-    },
-    {
-      id: "2",
-      content: "Carbon tax will hurt low-income families the most. We need alternative solutions that don't burden working people.",
-      author: "EconomicConcern",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      analysis: {
-        sentiment: { overall: "negative", confidence: 76, positive_score: 15, negative_score: 70, neutral_score: 15 },
-        analysis: { clarity: 88, relevance: 92, constructiveness: 65, evidence_quality: 60, respectfulness: 85 },
-        scores: { overall_score: 72, contribution_quality: 70, debate_value: 75 },
-        insights: {
-          key_points: ["Economic impact on families", "Need for alternative solutions", "Social equity concerns"],
-          strengths: ["Raises important social concerns", "Clear communication"],
-          areas_for_improvement: ["Could suggest specific alternatives", "More evidence on economic impact"],
-          debate_impact: "Medium - important perspective on social equity"
-        },
-        classification: { type: "concern", stance: "opposing", tone: "passionate" }
-      }
-    },
-    {
-      id: "3",
-      content: "What about implementing carbon tax with rebates for low-income households? This could address both environmental and social concerns.",
-      author: "PolicyInnovator",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      analysis: {
-        sentiment: { overall: "positive", confidence: 82, positive_score: 80, negative_score: 10, neutral_score: 10 },
-        analysis: { clarity: 95, relevance: 98, constructiveness: 95, evidence_quality: 85, respectfulness: 95 },
-        scores: { overall_score: 94, contribution_quality: 92, debate_value: 96 },
-        insights: {
-          key_points: ["Hybrid solution approach", "Rebate system design", "Balancing environmental and social goals"],
-          strengths: ["Innovative solution", "Addresses multiple concerns", "Highly constructive"],
-          areas_for_improvement: ["Could elaborate on implementation details"],
-          debate_impact: "Very High - proposes practical compromise solution"
-        },
-        classification: { type: "solution", stance: "neutral", tone: "analytical" }
-      }
-    }
-  ]
 
   useEffect(() => {
     if (isOpen && debate && !commentsLoaded) {
@@ -175,14 +118,36 @@ export default function DebateViewModal({ debate, isOpen, onClose, mode = 'view'
     }
   }, [isOpen])
 
-  const loadComments = () => {
+  const loadComments = async () => {
+    if (!debate?.id) return
+    
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setComments(mockComments)
+    try {
+      const response = await fetch(`/api/messages?debateId=${debate.id}&limit=50`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const formattedComments = data.messages.map((msg: any) => ({
+          id: msg._id,
+          content: msg.content,
+          author: msg.author?.firstName ? `${msg.author.firstName} ${msg.author.lastName}` : "Unknown",
+          timestamp: msg.createdAt,
+          analysis: msg.analysis
+        }))
+        setComments(formattedComments)
+      } else {
+        console.error('Failed to load comments:', response.statusText)
+        setComments([])
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error)
+      setComments([])
+    } finally {
       setCommentsLoaded(true)
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const getSentimentColor = (sentiment: string) => {
