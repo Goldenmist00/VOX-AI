@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   MessageSquare,
   Send,
@@ -67,35 +67,71 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
   const [newComment, setNewComment] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showComments, setShowComments] = useState(false)
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+
+  // Load existing messages when component mounts
+  useEffect(() => {
+    const loadMessages = async () => {
+      setIsLoadingMessages(true)
+      try {
+        const response = await fetch(`/api/messages?debateId=${debateId}&limit=20`, {
+          credentials: 'include'
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          const formattedComments = data.messages.map((msg: any) => ({
+            id: msg._id,
+            content: msg.content,
+            author: msg.author?.firstName ? `${msg.author.firstName} ${msg.author.lastName}` : "Unknown",
+            timestamp: msg.createdAt,
+            analysis: msg.analysis
+          }))
+          setComments(formattedComments)
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error)
+      } finally {
+        setIsLoadingMessages(false)
+      }
+    }
+
+    if (isJoined) {
+      loadMessages()
+    }
+  }, [debateId, isJoined])
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !isJoined) return
 
     setIsAnalyzing(true)
     try {
-      const response = await fetch('/api/analyze-comment', {
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ 
-          comment: newComment,
+          content: newComment,
+          debateId: debateId,
           debateTopic: debateTopic
         }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to analyze comment')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save comment')
       }
 
       const data = await response.json()
       
       const comment: Comment = {
-        id: Date.now().toString(),
-        content: newComment,
-        author: "You", // In a real app, this would be the logged-in user
-        timestamp: new Date().toISOString(),
-        analysis: data.analysis
+        id: data.data._id,
+        content: data.data.content,
+        author: data.data.author?.firstName ? `${data.data.author.firstName} ${data.data.author.lastName}` : "You",
+        timestamp: data.data.createdAt,
+        analysis: data.data.analysis
       }
 
       setComments(prev => [comment, ...prev])
@@ -106,28 +142,9 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
         onCommentAdded(comment, debateId)
       }
     } catch (error) {
-      console.error('Error analyzing comment:', error)
-      // Still add the comment without analysis
-      const comment: Comment = {
-        id: Date.now().toString(),
-        content: newComment,
-        author: "You",
-        timestamp: new Date().toISOString(),
-        analysis: {
-          sentiment: { overall: "neutral", confidence: 0, positive_score: 0, negative_score: 0, neutral_score: 100 },
-          analysis: { clarity: 50, relevance: 50, constructiveness: 50, evidence_quality: 50, respectfulness: 50 },
-          scores: { overall_score: 50, contribution_quality: 50, debate_value: 50 },
-          insights: { key_points: [], strengths: [], areas_for_improvement: [], debate_impact: "Analysis unavailable" },
-          classification: { type: "opinion", stance: "neutral", tone: "neutral" }
-        }
-      }
-      setComments(prev => [comment, ...prev])
-      setNewComment("")
-      
-      // Notify parent component about new comment (even without analysis)
-      if (onCommentAdded) {
-        onCommentAdded(comment, debateId)
-      }
+      console.error('Error saving comment:', error)
+      // Show error to user but don't add comment to local state
+      alert(error instanceof Error ? error.message : 'Failed to save comment. Please try again.')
     } finally {
       setIsAnalyzing(false)
     }
@@ -222,7 +239,17 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
       {/* Comments List */}
       {showComments && (
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {isLoadingMessages ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+              <span className="ml-2 text-gray-400">Loading messages...</span>
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">
+              No messages yet. Be the first to comment!
+            </div>
+          ) : (
+            comments.map((comment) => (
             <div key={comment.id} className="bg-gray-900/30 border border-gray-700 rounded-lg p-4">
               {/* Comment Header */}
               <div className="flex items-center justify-between mb-3">
@@ -336,7 +363,8 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
                 </div>
               )}
             </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>

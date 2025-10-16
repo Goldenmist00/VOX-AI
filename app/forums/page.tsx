@@ -49,8 +49,11 @@ export default function ForumsPage() {
   const [dynamicKeywords, setDynamicKeywords] = useState([
     "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
   ])
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false)
+  const [isCreatingDebate, setIsCreatingDebate] = useState(false)
+  const [createDebateError, setCreateDebateError] = useState("")
 
-  const debates = [
+  const [debates, setDebates] = useState([
     {
       id: 1,
       title: "Should Carbon Tax Be Implemented Nationwide?",
@@ -87,7 +90,7 @@ export default function ForumsPage() {
       messages: 578,
       trending: true
     }
-  ]
+  ])
 
   const leaderboard = [
     { id: 1, username: "PolicyExpert2024", avatar: "PE", aiScore: 94, clarity: 89, engagement: 97 },
@@ -186,11 +189,104 @@ export default function ForumsPage() {
     setAllComments(prev => [commentWithDebateId, ...prev])
   }
 
-  const filteredDebates = debates.filter(debate => 
-    debate.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    debate.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    debate.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+  // Handle creating a new debate
+  const handleCreateDebate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsCreatingDebate(true)
+    setCreateDebateError("")
+
+    const formData = new FormData(e.currentTarget)
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+    const tags = formData.get('tags') as string
+
+    try {
+      const response = await fetch('/api/debates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ title, description, tags }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Add the new debate to the local state
+        const newDebate = {
+          id: data.debate._id,
+          title: data.debate.title,
+          description: data.debate.description,
+          tags: data.debate.tags,
+          participants: data.debate.participants,
+          sentiment: data.debate.sentiment,
+          activity: data.debate.activity,
+          aiScore: data.debate.aiScore,
+          messages: data.debate.messages,
+          trending: data.debate.trending
+        }
+        
+        // Update the debates array (we'll need to make it stateful)
+        setDebates(prev => [newDebate, ...prev])
+        
+        // Close the modal and reset form
+        setShowCreateDebate(false)
+        e.currentTarget.reset()
+      } else {
+        setCreateDebateError(data.error || 'Failed to create debate')
+      }
+    } catch (error) {
+      console.error('Error creating debate:', error)
+      setCreateDebateError('Network error. Please try again.')
+    } finally {
+      setIsCreatingDebate(false)
+    }
+  }
+
+  const filteredDebates = debates.filter(debate => {
+    if (!searchQuery.trim()) return true
+    
+    const query = searchQuery.toLowerCase().trim()
+    const matches = (
+      debate.title.toLowerCase().includes(query) ||
+      debate.description.toLowerCase().includes(query) ||
+      debate.tags.some(tag => tag.toLowerCase().includes(query)) ||
+      // Search by participant count ranges
+      (query.includes('high') && debate.participants > 1000) ||
+      (query.includes('low') && debate.participants < 100) ||
+      (query.includes('medium') && debate.participants >= 100 && debate.participants <= 1000) ||
+      // Search by sentiment
+      (query.includes('positive') && debate.sentiment.positive > 60) ||
+      (query.includes('negative') && debate.sentiment.negative > 60) ||
+      (query.includes('neutral') && debate.sentiment.neutral > 60) ||
+      // Search by activity level
+      (query.includes('active') && debate.activity === 'high') ||
+      (query.includes('trending') && debate.activity === 'high') ||
+      (query.includes('quiet') && debate.activity === 'low')
+    )
+    
+    // Debug logging
+    if (searchQuery.trim()) {
+      console.log(`Searching for "${query}" in "${debate.title}": ${matches}`)
+    }
+    
+    return matches
+  })
+
+  // Generate search suggestions
+  const searchSuggestions = [
+    ...dynamicKeywords,
+    "high participants",
+    "low participants", 
+    "positive sentiment",
+    "negative sentiment",
+    "active debates",
+    "trending topics"
+  ].filter(suggestion => 
+    suggestion.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    suggestion.toLowerCase() !== searchQuery.toLowerCase()
+  ).slice(0, 5)
 
   useEffect(() => {
     // Add some initial mock comments for demonstration
@@ -342,39 +438,20 @@ export default function ForumsPage() {
               </p>
             </div>
 
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white" />
-                <input
-                  type="text"
-                  placeholder="Search topics (e.g., Climate Policy, Internet Censorship...)"
-                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-12 pr-4 py-4 text-white placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-colors"
-                />
-              </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="group relative cursor-pointer">
-                <div className="absolute inset-0 border border-blue-500/40 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
-                <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-white" />
-                  <span>Start Debate</span>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => setShowCreateDebate(true)}
-                className="group relative cursor-pointer"
-              >
-                <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
-                <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-white" />
-                  <span>Create Debate</span>
-                </div>
-              </button>
-            </div>
+             {/* Action Buttons */}
+             <div className="flex justify-center">
+               <button 
+                 onClick={() => setShowCreateDebate(true)}
+                 className="group relative cursor-pointer"
+               >
+                 <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
+                 <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
+                   <Plus className="w-5 h-5 text-white" />
+                   <span>Create Debate</span>
+                 </div>
+               </button>
+             </div>
           </div>
         </header>
 
@@ -391,12 +468,47 @@ export default function ForumsPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search debates, topics, or tags..."
+                      placeholder="Search debates by title, topic, or tags (e.g., 'Carbon Tax', 'Environment', 'Policy')..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+                      onFocus={() => setShowSearchSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
+                      className="w-full pl-10 pr-12 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                     />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                        title="Clear search"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                    
+                    {/* Search Suggestions Dropdown */}
+                    {showSearchSuggestions && searchQuery && searchSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                        {searchSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setSearchQuery(suggestion)
+                              setShowSearchSuggestions(false)
+                            }}
+                            className="w-full px-4 py-2 text-left text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                          >
+                            <Search className="w-4 h-4 text-gray-400" />
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                  {searchQuery && (
+                    <div className="mt-2 text-sm text-gray-400">
+                      {filteredDebates.length} debate{filteredDebates.length !== 1 ? 's' : ''} found for "{searchQuery}"
+                    </div>
+                  )}
                 </div>
 
                 {/* Filter Tabs */}
@@ -543,6 +655,28 @@ export default function ForumsPage() {
                       />
                     </div>
                   ))}
+                  
+                  {/* No Results Message */}
+                  {searchQuery && filteredDebates.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="text-gray-400 mb-4">
+                        <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-xl font-semibold mb-2">No debates found</h3>
+                        <p className="text-gray-500">
+                          No debates match your search for "<span className="text-white">{searchQuery}</span>"
+                        </p>
+                        <p className="text-sm text-gray-600 mt-2">
+                          Try searching for different keywords or check your spelling
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        Clear search
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -670,27 +804,41 @@ export default function ForumsPage() {
               </button>
             </div>
             
-            <form className="space-y-6">
+            <form onSubmit={handleCreateDebate} className="space-y-6">
+              {createDebateError && (
+                <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg">
+                  {createDebateError}
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Debate Title
+                  Debate Title *
                 </label>
                 <input
                   type="text"
+                  name="title"
+                  required
+                  maxLength={200}
                   placeholder="Enter a compelling debate title..."
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum 200 characters</p>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description
+                  Description *
                 </label>
                 <textarea
+                  name="description"
+                  required
+                  maxLength={1000}
                   placeholder="Describe the debate topic and key points for discussion..."
                   rows={4}
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors resize-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum 1000 characters</p>
               </div>
               
               <div>
@@ -699,25 +847,41 @@ export default function ForumsPage() {
                 </label>
                 <input
                   type="text"
+                  name="tags"
                   placeholder="Enter tags separated by commas (e.g., Environment, Policy, Economy)"
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum 10 tags, 50 characters each</p>
               </div>
               
               <div className="flex gap-3 pt-4">
                 <button 
                   type="button"
-                  onClick={() => setShowCreateDebate(false)}
-                  className="flex-1 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                  onClick={() => {
+                    setShowCreateDebate(false)
+                    setCreateDebateError("")
+                  }}
+                  disabled={isCreatingDebate}
+                  className="flex-1 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                  disabled={isCreatingDebate}
+                  className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Plus className="w-4 h-4" />
-                  Create Debate
+                  {isCreatingDebate ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create Debate
+                    </>
+                  )}
                 </button>
               </div>
             </form>
