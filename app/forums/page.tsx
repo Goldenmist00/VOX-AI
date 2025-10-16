@@ -422,7 +422,7 @@ export default function ForumsPage() {
           <div className="max-w-7xl mx-auto text-center">
             <div className="mb-8">
               <h1 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-                🗣️ Real-Time Debate Analyzer
+                 Real-Time Debate Analyzer
               </h1>
               <p className="text-xl text-gray-400 max-w-3xl mx-auto">
                 Join live debates and see collective opinion evolve through AI insights.

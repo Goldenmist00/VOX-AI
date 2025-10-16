@@ -18,9 +18,17 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const skip = parseInt(searchParams.get('skip') || '0')
 
-    if (!debateId) {
+    if (!debateId || debateId === 'undefined' || debateId === 'null') {
       return NextResponse.json(
-        { error: 'Debate ID is required' },
+        { error: 'Valid debate ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(debateId)) {
+      return NextResponse.json(
+        { error: 'Invalid debate ID format' },
         { status: 400 }
       )
     }
@@ -71,14 +79,41 @@ export async function POST(req: NextRequest) {
     }
 
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    const userId = (payload as any).userId
+    let userId = (payload as any).userId
+    
+    // Convert ObjectId buffer to string if needed
+    if (typeof userId !== 'string') {
+      if (userId && typeof userId === 'object' && userId.buffer) {
+        // Convert buffer to hex string
+        const buffer = Buffer.from(Object.values(userId.buffer))
+        userId = buffer.toString('hex')
+      } else {
+        userId = String(userId)
+      }
+    }
+    
+    // Validate userId format
+    if (!userId || userId === '[object Object]' || userId.length !== 24) {
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 401 }
+      )
+    }
 
     const { content, debateId, debateTopic } = await req.json()
 
     // Validation
-    if (!content || !debateId) {
+    if (!content || !debateId || debateId === 'undefined' || debateId === 'null') {
       return NextResponse.json(
-        { error: 'Content and debate ID are required' },
+        { error: 'Content and valid debate ID are required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(debateId)) {
+      return NextResponse.json(
+        { error: 'Invalid debate ID format' },
         { status: 400 }
       )
     }

@@ -28,8 +28,14 @@ export async function GET(req: NextRequest) {
 
     const total = await Debate.countDocuments({ isActive: true })
 
+    // Transform debates to include id field for frontend compatibility
+    const transformedDebates = debates.map((debate: any) => ({
+      ...debate,
+      id: debate._id.toString()
+    }))
+
     return NextResponse.json({
-      debates,
+      debates: transformedDebates,
       total,
       hasMore: skip + limit < total
     })
@@ -59,7 +65,26 @@ export async function POST(req: NextRequest) {
     }
 
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    const userId = (payload as any).userId
+    let userId = (payload as any).userId
+    
+    // Convert ObjectId buffer to string if needed
+    if (typeof userId !== 'string') {
+      if (userId && typeof userId === 'object' && userId.buffer) {
+        // Convert buffer to hex string
+        const buffer = Buffer.from(Object.values(userId.buffer))
+        userId = buffer.toString('hex')
+      } else {
+        userId = String(userId)
+      }
+    }
+    
+    // Validate userId format
+    if (!userId || userId === '[object Object]' || userId.length !== 24) {
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 401 }
+      )
+    }
 
     const { title, description, tags } = await req.json()
 
@@ -117,9 +142,15 @@ export async function POST(req: NextRequest) {
     // Populate the createdBy field for response
     await debate.populate('createdBy', 'firstName lastName email role')
 
+    // Transform debate to include id field for frontend compatibility
+    const transformedDebate = {
+      ...debate.toObject(),
+      id: debate._id.toString()
+    }
+
     return NextResponse.json({
       message: 'Debate created successfully',
-      debate
+      debate: transformedDebate
     }, { status: 201 })
 
   } catch (error) {
