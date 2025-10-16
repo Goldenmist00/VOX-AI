@@ -899,9 +899,12 @@ export default function ForumsPage() {
                   type="text"
                   name="tags"
                   placeholder="Enter tags separated by commas (e.g., Environment, Policy, Economy)"
+                  maxLength={500}
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 />
-                <p className="text-xs text-gray-500 mt-1">Maximum 10 tags, 50 characters each</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Each tag max 50 characters, max 10 tags. Don't include # symbols.
+                </p>
               </div>
               
               <div className="flex gap-3 pt-4">
