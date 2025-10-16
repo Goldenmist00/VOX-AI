@@ -50,8 +50,10 @@ export default function ForumsPage() {
     "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
   ])
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false)
+  const [isCreatingDebate, setIsCreatingDebate] = useState(false)
+  const [createDebateError, setCreateDebateError] = useState("")
 
-  const debates = [
+  const [debates, setDebates] = useState([
     {
       id: 1,
       title: "Should Carbon Tax Be Implemented Nationwide?",
@@ -88,7 +90,7 @@ export default function ForumsPage() {
       messages: 578,
       trending: true
     }
-  ]
+  ])
 
   const leaderboard = [
     { id: 1, username: "PolicyExpert2024", avatar: "PE", aiScore: 94, clarity: 89, engagement: 97 },
@@ -185,6 +187,61 @@ export default function ForumsPage() {
   const addComment = (comment: any, debateId: number) => {
     const commentWithDebateId = { ...comment, debateId }
     setAllComments(prev => [commentWithDebateId, ...prev])
+  }
+
+  // Handle creating a new debate
+  const handleCreateDebate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsCreatingDebate(true)
+    setCreateDebateError("")
+
+    const formData = new FormData(e.currentTarget)
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+    const tags = formData.get('tags') as string
+
+    try {
+      const response = await fetch('/api/debates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ title, description, tags }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Add the new debate to the local state
+        const newDebate = {
+          id: data.debate._id,
+          title: data.debate.title,
+          description: data.debate.description,
+          tags: data.debate.tags,
+          participants: data.debate.participants,
+          sentiment: data.debate.sentiment,
+          activity: data.debate.activity,
+          aiScore: data.debate.aiScore,
+          messages: data.debate.messages,
+          trending: data.debate.trending
+        }
+        
+        // Update the debates array (we'll need to make it stateful)
+        setDebates(prev => [newDebate, ...prev])
+        
+        // Close the modal and reset form
+        setShowCreateDebate(false)
+        e.currentTarget.reset()
+      } else {
+        setCreateDebateError(data.error || 'Failed to create debate')
+      }
+    } catch (error) {
+      console.error('Error creating debate:', error)
+      setCreateDebateError('Network error. Please try again.')
+    } finally {
+      setIsCreatingDebate(false)
+    }
   }
 
   const filteredDebates = debates.filter(debate => {
@@ -382,27 +439,19 @@ export default function ForumsPage() {
             </div>
 
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="group relative cursor-pointer">
-                <div className="absolute inset-0 border border-blue-500/40 bg-blue-500/10 transition-all duration-300 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-400/20" />
-                <div className="relative border border-blue-400 bg-blue-400 text-black font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:bg-blue-300 transform translate-x-0.5 translate-y-0.5 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-white" />
-                  <span>Start Debate</span>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => setShowCreateDebate(true)}
-                className="group relative cursor-pointer"
-              >
-                <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
-                <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-white" />
-                  <span>Create Debate</span>
-                </div>
-              </button>
-            </div>
+             {/* Action Buttons */}
+             <div className="flex justify-center">
+               <button 
+                 onClick={() => setShowCreateDebate(true)}
+                 className="group relative cursor-pointer"
+               >
+                 <div className="absolute inset-0 border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 transition-all duration-300 group-hover:border-emerald-400 group-hover:shadow-lg group-hover:shadow-emerald-400/20" />
+                 <div className="relative border-2 border-dashed border-emerald-400 bg-transparent text-white font-bold px-8 py-4 text-lg transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-gray-900/30 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 flex items-center gap-2">
+                   <Plus className="w-5 h-5 text-white" />
+                   <span>Create Debate</span>
+                 </div>
+               </button>
+             </div>
           </div>
         </header>
 
@@ -755,27 +804,41 @@ export default function ForumsPage() {
               </button>
             </div>
             
-            <form className="space-y-6">
+            <form onSubmit={handleCreateDebate} className="space-y-6">
+              {createDebateError && (
+                <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg">
+                  {createDebateError}
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Debate Title
+                  Debate Title *
                 </label>
                 <input
                   type="text"
+                  name="title"
+                  required
+                  maxLength={200}
                   placeholder="Enter a compelling debate title..."
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum 200 characters</p>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description
+                  Description *
                 </label>
                 <textarea
+                  name="description"
+                  required
+                  maxLength={1000}
                   placeholder="Describe the debate topic and key points for discussion..."
                   rows={4}
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors resize-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum 1000 characters</p>
               </div>
               
               <div>
@@ -784,25 +847,41 @@ export default function ForumsPage() {
                 </label>
                 <input
                   type="text"
+                  name="tags"
                   placeholder="Enter tags separated by commas (e.g., Environment, Policy, Economy)"
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum 10 tags, 50 characters each</p>
               </div>
               
               <div className="flex gap-3 pt-4">
                 <button 
                   type="button"
-                  onClick={() => setShowCreateDebate(false)}
-                  className="flex-1 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                  onClick={() => {
+                    setShowCreateDebate(false)
+                    setCreateDebateError("")
+                  }}
+                  disabled={isCreatingDebate}
+                  className="flex-1 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                  disabled={isCreatingDebate}
+                  className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Plus className="w-4 h-4" />
-                  Create Debate
+                  {isCreatingDebate ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create Debate
+                    </>
+                  )}
                 </button>
               </div>
             </form>
