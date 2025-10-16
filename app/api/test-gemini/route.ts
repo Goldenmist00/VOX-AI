@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       connectionTest,
       availableModels,
       apiKeySet: !!process.env.GEMINI_API_KEY,
-      modelFromEnv: process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+      modelFromEnv: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
     });
   } catch (error) {
     console.error('Gemini test error:', error);
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error',
         apiKeySet: !!process.env.GEMINI_API_KEY,
-        modelFromEnv: process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+        modelFromEnv: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
       },
       { status: 500 }
     );

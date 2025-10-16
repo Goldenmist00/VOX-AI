@@ -40,6 +40,7 @@ import {
   LogOut
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import IntegrationStatus from "@/components/IntegrationStatus"
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -397,6 +398,11 @@ export default function DashboardPage() {
             </div>
 
             {/* Public Issues Panel */}
+            {/* Integration Status Section */}
+            <div className="mb-12">
+              <IntegrationStatus />
+            </div>
+
             <div className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <FileText className="w-6 h-6 text-blue-400" />

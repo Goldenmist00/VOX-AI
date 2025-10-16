@@ -10,28 +10,20 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB()
 
-    const { searchParams } = new URL(req.url)
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const skip = parseInt(searchParams.get('skip') || '0')
-    const sortBy = searchParams.get('sortBy') || 'createdAt'
-    const order = searchParams.get('order') || 'desc'
-
-    const sortOptions: any = {}
-    sortOptions[sortBy] = order === 'desc' ? -1 : 1
-
     const debates = await Debate.find({ isActive: true })
-      .populate('createdBy', 'firstName lastName email role')
-      .sort(sortOptions)
-      .limit(limit)
-      .skip(skip)
+      .sort({ createdAt: -1 })
       .lean()
 
-    const total = await Debate.countDocuments({ isActive: true })
+    // Transform _id to id for frontend compatibility
+    const transformedDebates = debates.map(debate => ({
+      ...debate,
+      id: debate._id.toString(),
+      _id: undefined
+    }))
 
     return NextResponse.json({
-      debates,
-      total,
-      hasMore: skip + limit < total
+      success: true,
+      debates: transformedDebates
     })
 
   } catch (error) {
