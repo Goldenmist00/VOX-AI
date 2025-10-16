@@ -159,7 +159,7 @@ export class RedditRSSIntegration {
    * Get stored Reddit posts and comments for a keyword
    */
   async getRedditData(
-    keyword: string,
+    keyword: string | null,
     options: {
       type?: 'posts' | 'comments' | 'both'
       limit?: number

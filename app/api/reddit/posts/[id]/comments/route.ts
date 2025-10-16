@@ -164,24 +164,32 @@ export async function POST(
       // The geminiService already has fallback logic, but add extra safety
       analysis = {
         sentiment: {
-          classification: 'neutral' as const,
+          overall: 'neutral' as const,
           confidence: 50,
           positive_score: 33,
           negative_score: 33,
           neutral_score: 34
         },
-        quality: {
+        analysis: {
           clarity: 50,
-          coherence: 50,
-          informativeness: 50,
-          overall_quality: 50
+          relevance: 50,
+          constructiveness: 50,
+          evidence_quality: 50,
+          respectfulness: 80
         },
-        relevancy: {
-          score: 50,
-          reasoning: 'Analysis unavailable'
+        scores: {
+          overall_score: 50,
+          contribution_quality: 50,
+          debate_value: 50
         },
         insights: {
-          key_points: [],
+          key_points: ['User comment'],
+          strengths: ['Participates in discussion'],
+          areas_for_improvement: ['Analysis unavailable'],
+          debate_impact: 'Analysis failed - using fallback'
+        },
+        classification: {
+          type: 'opinion' as const,
           stance: 'neutral' as const,
           tone: 'casual' as const
         }

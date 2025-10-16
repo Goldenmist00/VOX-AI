@@ -86,8 +86,9 @@ Return this exact JSON structure:
 Rate 0-100. Be concise. JSON only.`
 
     // Add timeout for faster failure handling
+    const timeoutMs = parseInt(process.env.GEMINI_TIMEOUT_MS || '15000')
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Analysis timeout')), 8000)
+      setTimeout(() => reject(new Error(`Reddit comment analysis timeout after ${timeoutMs/1000} seconds`)), timeoutMs)
     )
     
     const analysisPromise = model.generateContent(prompt)

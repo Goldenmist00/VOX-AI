@@ -137,14 +137,10 @@ export async function GET(req: NextRequest) {
         })
 
       case 'data':
-        if (!keyword) {
-          return NextResponse.json(
-            { error: 'Keyword parameter is required for data retrieval' },
-            { status: 400 }
-          )
-        }
+        // Allow empty keyword for loading all posts
+        const searchKeyword = keyword && keyword.trim() !== '' ? keyword : null
         
-        const data = await rssIntegration.getRedditData(keyword, {
+        const data = await rssIntegration.getRedditData(searchKeyword, {
           type,
           limit: Math.min(limit, 100),
           sortBy,
