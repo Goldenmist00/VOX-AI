@@ -7,6 +7,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secr
 
 export async function GET(req: NextRequest) {
   try {
+    // Add a small delay to ensure database is ready
+    await new Promise(resolve => setTimeout(resolve, 100))
     await connectDB()
 
     // Debug: Log all cookies
