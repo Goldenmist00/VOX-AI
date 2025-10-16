@@ -56,10 +56,10 @@ interface Comment {
 }
 
 interface CommentSystemProps {
-  debateId: number
+  debateId: string
   debateTopic: string
   isJoined: boolean
-  onCommentAdded?: (comment: any, debateId: number) => void
+  onCommentAdded?: (comment: any, debateId: string) => void
 }
 
 export default function CommentSystem({ debateId, debateTopic, isJoined, onCommentAdded }: CommentSystemProps) {

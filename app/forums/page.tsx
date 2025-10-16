@@ -37,12 +37,12 @@ import DebateViewModal from "../components/DebateViewModal"
 export default function ForumsPage() {
   const { user, logout } = useAuth()
   const [activeFilter, setActiveFilter] = useState("trending")
-  const [selectedDebate, setSelectedDebate] = useState<number | null>(null)
+  const [selectedDebate, setSelectedDebate] = useState<string | null>(null)
   const [sentimentData, setSentimentData] = useState({ positive: 45, negative: 25, neutral: 30 })
   const [keywords, setKeywords] = useState([
     "Climate Action", "Carbon Tax", "Renewable Energy", "Green Jobs", "Sustainability"
   ])
-  const [joinedDebates, setJoinedDebates] = useState<Set<number>>(new Set())
+  const [joinedDebates, setJoinedDebates] = useState<Set<string>>(new Set())
   const [showCreateDebate, setShowCreateDebate] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [allComments, setAllComments] = useState<any[]>([])
@@ -53,44 +53,9 @@ export default function ForumsPage() {
   const [isCreatingDebate, setIsCreatingDebate] = useState(false)
   const [createDebateError, setCreateDebateError] = useState("")
 
-  const [debates, setDebates] = useState([
-    {
-      id: 1,
-      title: "Should Carbon Tax Be Implemented Nationwide?",
-      description: "Discussing the economic and environmental impacts of implementing a federal carbon tax policy.",
-      tags: ["Environment", "Policy", "Economy"],
-      participants: 1247,
-      sentiment: { positive: 52, negative: 31, neutral: 17 },
-      activity: "high",
-      aiScore: 87,
-      messages: 342,
-      trending: true
-    },
-    {
-      id: 2,
-      title: "Internet Censorship vs Free Speech",
-      description: "Balancing online safety with freedom of expression in the digital age.",
-      tags: ["Technology", "Rights", "Law"],
-      participants: 892,
-      sentiment: { positive: 38, negative: 45, neutral: 17 },
-      activity: "medium",
-      aiScore: 73,
-      messages: 156,
-      trending: false
-    },
-    {
-      id: 3,
-      title: "Universal Basic Income: Economic Solution or Risk?",
-      description: "Exploring the potential benefits and drawbacks of implementing UBI programs.",
-      tags: ["Economy", "Social Policy", "Innovation"],
-      participants: 2103,
-      sentiment: { positive: 41, negative: 39, neutral: 20 },
-      activity: "high",
-      aiScore: 91,
-      messages: 578,
-      trending: true
-    }
-  ])
+  const [debates, setDebates] = useState<any[]>([])
+  const [isLoadingDebates, setIsLoadingDebates] = useState(true)
+  const [debatesError, setDebatesError] = useState("")
 
   const leaderboard = [
     { id: 1, username: "PolicyExpert2024", avatar: "PE", aiScore: 94, clarity: 89, engagement: 97 },
@@ -99,7 +64,7 @@ export default function ForumsPage() {
     { id: 4, username: "ThoughtLeader", avatar: "TL", aiScore: 82, clarity: 85, engagement: 79 }
   ]
 
-  const handleJoinDebate = (debateId: number) => {
+  const handleJoinDebate = (debateId: string) => {
     setJoinedDebates(prev => {
       const newSet = new Set(prev)
       if (newSet.has(debateId)) {
@@ -111,7 +76,7 @@ export default function ForumsPage() {
     })
   }
 
-  const handleViewDebate = (debateId: number) => {
+  const handleViewDebate = (debateId: string) => {
     setSelectedDebate(debateId)
   }
 
@@ -136,7 +101,7 @@ export default function ForumsPage() {
   }
 
   // Calculate sentiment for a specific debate
-  const calculateDebateSentiment = (debateId: number) => {
+  const calculateDebateSentiment = (debateId: string) => {
     const debateComments = allComments.filter(comment => comment.debateId === debateId)
     
     if (debateComments.length === 0) {
@@ -184,9 +149,32 @@ export default function ForumsPage() {
   }
 
   // Add comment to global state
-  const addComment = (comment: any, debateId: number) => {
+  const addComment = (comment: any, debateId: string) => {
     const commentWithDebateId = { ...comment, debateId }
     setAllComments(prev => [commentWithDebateId, ...prev])
+  }
+
+  // Fetch debates from database
+  const fetchDebates = async () => {
+    setIsLoadingDebates(true)
+    setDebatesError("")
+    try {
+      const response = await fetch('/api/debates?limit=20&sortBy=createdAt&order=desc', {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setDebates(data.debates)
+      } else {
+        setDebatesError('Failed to load debates')
+      }
+    } catch (error) {
+      console.error('Error fetching debates:', error)
+      setDebatesError('Network error. Please try again.')
+    } finally {
+      setIsLoadingDebates(false)
+    }
   }
 
   // Handle creating a new debate
@@ -227,8 +215,8 @@ export default function ForumsPage() {
           trending: data.debate.trending
         }
         
-        // Update the debates array (we'll need to make it stateful)
-        setDebates(prev => [newDebate, ...prev])
+        // Refresh the debates list to include the new debate
+        fetchDebates()
         
         // Close the modal and reset form
         setShowCreateDebate(false)
@@ -251,7 +239,7 @@ export default function ForumsPage() {
     const matches = (
       debate.title.toLowerCase().includes(query) ||
       debate.description.toLowerCase().includes(query) ||
-      debate.tags.some(tag => tag.toLowerCase().includes(query)) ||
+      debate.tags.some((tag: string) => tag.toLowerCase().includes(query)) ||
       // Search by participant count ranges
       (query.includes('high') && debate.participants > 1000) ||
       (query.includes('low') && debate.participants < 100) ||
@@ -289,6 +277,9 @@ export default function ForumsPage() {
   ).slice(0, 5)
 
   useEffect(() => {
+    // Fetch debates from database
+    fetchDebates()
+    
     // Add some initial mock comments for demonstration
     const initialComments = [
       {
@@ -534,9 +525,46 @@ export default function ForumsPage() {
                   </div>
                 </div>
 
-                {/* Debate Cards */}
-                <div className="space-y-6">
-                  {filteredDebates.map((debate) => (
+                 {/* Debate Cards */}
+                 <div className="space-y-6">
+                   {isLoadingDebates ? (
+                     <div className="flex items-center justify-center py-12">
+                       <div className="flex items-center gap-3">
+                         <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                         <span className="text-gray-400">Loading debates...</span>
+                       </div>
+                     </div>
+                   ) : debatesError ? (
+                     <div className="text-center py-12">
+                       <div className="text-red-400 mb-4">
+                         <h3 className="text-xl font-semibold mb-2">Failed to load debates</h3>
+                         <p className="text-gray-500 mb-4">{debatesError}</p>
+                         <button
+                           onClick={fetchDebates}
+                           className="text-blue-400 hover:text-blue-300 transition-colors"
+                         >
+                           Try again
+                         </button>
+                       </div>
+                     </div>
+                   ) : filteredDebates.length === 0 && !searchQuery ? (
+                     <div className="text-center py-12">
+                       <div className="text-gray-400 mb-4">
+                         <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                         <h3 className="text-xl font-semibold mb-2">No debates yet</h3>
+                         <p className="text-gray-500 mb-4">
+                           Be the first to start a meaningful discussion!
+                         </p>
+                         <button
+                           onClick={() => setShowCreateDebate(true)}
+                           className="text-blue-400 hover:text-blue-300 transition-colors"
+                         >
+                           Create the first debate
+                         </button>
+                       </div>
+                     </div>
+                   ) : (
+                     filteredDebates.map((debate) => (
                     <div key={debate.id} className="card-interactive bg-gray-950/60 border border-gray-700 p-6 hover:border-gray-500 transition-all duration-300">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
@@ -551,7 +579,7 @@ export default function ForumsPage() {
                           </div>
                           <p className="text-gray-400 mb-3">{debate.description}</p>
                           <div className="flex items-center gap-2 mb-4">
-                            {debate.tags.map((tag) => (
+                            {debate.tags.map((tag: string) => (
                               <span key={tag} className="flex items-center gap-1 text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded-full">
                                 <Hash className="w-3 h-3 text-white" />
                                 {tag}
@@ -654,10 +682,11 @@ export default function ForumsPage() {
                         onCommentAdded={addComment}
                       />
                     </div>
-                  ))}
+                    ))
+                  )}
                   
                   {/* No Results Message */}
-                  {searchQuery && filteredDebates.length === 0 && (
+                  {searchQuery && filteredDebates.length === 0 && !isLoadingDebates && !debatesError && (
                     <div className="text-center py-12">
                       <div className="text-gray-400 mb-4">
                         <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
