@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Message from '@/models/Message'
 import Debate from '@/models/Debate'
+import User from '@/models/User'
 import { jwtVerify } from 'jose'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
