@@ -28,7 +28,8 @@ import {
   Upload,
   LayoutDashboard,
   X,
-  LogOut
+  LogOut,
+  RefreshCw
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import CommentSystem from "../components/CommentSystem"
@@ -154,6 +155,13 @@ export default function ForumsPage() {
     setAllComments(prev => [commentWithDebateId, ...prev])
   }
 
+  // Refresh all comments to update live sentiment
+  const refreshAllComments = async () => {
+    if (debates.length > 0) {
+      await loadAllComments(debates)
+    }
+  }
+
   // Fetch debates from database
   const fetchDebates = async () => {
     setIsLoadingDebates(true)
@@ -166,6 +174,9 @@ export default function ForumsPage() {
       if (response.ok) {
         const data = await response.json()
         setDebates(data.debates)
+        
+        // Load comments for all debates to update live sentiment
+        await loadAllComments(data.debates)
       } else {
         setDebatesError('Failed to load debates')
       }
@@ -174,6 +185,41 @@ export default function ForumsPage() {
       setDebatesError('Network error. Please try again.')
     } finally {
       setIsLoadingDebates(false)
+    }
+  }
+
+  // Load all comments from all debates for live sentiment analysis
+  const loadAllComments = async (debatesList: any[]) => {
+    try {
+      const allCommentsPromises = debatesList.map(async (debate) => {
+        try {
+          const response = await fetch(`/api/messages?debateId=${debate.id}&limit=100`, {
+            credentials: 'include'
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            return data.messages.map((msg: any) => ({
+              id: msg._id,
+              content: msg.content,
+              author: msg.author?.firstName ? `${msg.author.firstName} ${msg.author.lastName}` : "Unknown",
+              timestamp: msg.createdAt,
+              analysis: msg.analysis,
+              debateId: debate.id
+            }))
+          }
+          return []
+        } catch (error) {
+          console.error(`Error loading comments for debate ${debate.id}:`, error)
+          return []
+        }
+      })
+
+      const allCommentsResults = await Promise.all(allCommentsPromises)
+      const flattenedComments = allCommentsResults.flat()
+      setAllComments(flattenedComments)
+    } catch (error) {
+      console.error('Error loading all comments:', error)
     }
   }
 
@@ -277,43 +323,8 @@ export default function ForumsPage() {
   ).slice(0, 5)
 
   useEffect(() => {
-    // Fetch debates from database
+    // Fetch debates from database (this will also load all comments)
     fetchDebates()
-    
-    // Add some initial mock comments for demonstration
-    const initialComments = [
-      {
-        id: "1",
-        content: "I believe carbon tax is essential for reducing emissions. The economic benefits outweigh the costs.",
-        analysis: { sentiment: { overall: "positive" } },
-        debateId: 1
-      },
-      {
-        id: "2", 
-        content: "Carbon tax will hurt low-income families the most. We need alternative solutions.",
-        analysis: { sentiment: { overall: "negative" } },
-        debateId: 1
-      },
-      {
-        id: "3",
-        content: "What about implementing carbon tax with rebates for low-income households?",
-        analysis: { sentiment: { overall: "positive" } },
-        debateId: 1
-      },
-      {
-        id: "4",
-        content: "Internet censorship is necessary to protect children from harmful content online.",
-        analysis: { sentiment: { overall: "positive" } },
-        debateId: 2
-      },
-      {
-        id: "5",
-        content: "Censorship violates our fundamental right to free speech and expression.",
-        analysis: { sentiment: { overall: "negative" } },
-        debateId: 2
-      }
-    ]
-    setAllComments(initialComments)
   }, [])
 
   useEffect(() => {
@@ -734,9 +745,19 @@ export default function ForumsPage() {
 
                 {/* Real-time Sentiment */}
                 <div className="bg-gray-950/60 border border-gray-700 p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <BarChart3 className="w-5 h-5 text-white" />
-                    <h3 className="font-bold">Live Sentiment</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-white" />
+                      <h3 className="font-bold">Live Sentiment</h3>
+                    </div>
+                    <button
+                      onClick={refreshAllComments}
+                      className="flex items-center gap-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded text-xs transition-colors"
+                      title="Refresh sentiment analysis"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Refresh
+                    </button>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
