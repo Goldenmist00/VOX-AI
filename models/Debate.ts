@@ -4,7 +4,7 @@ export interface IDebate extends Document {
   title: string
   description: string
   tags: string[]
-  createdBy: string // User ID who created the debate
+  createdBy: mongoose.Schema.Types.ObjectId // Reference to User model
   participants: number
   messages: number
   sentiment: {
