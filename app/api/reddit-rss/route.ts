@@ -7,9 +7,20 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secr
 
 export async function POST(req: NextRequest) {
   try {
-    // Temporarily skip authentication for testing
-    console.log('Reddit RSS POST - Skipping authentication for testing')
-    const user = { email: 'test@example.com' }
+    // Get user from authentication
+    const token = req.cookies.get('vox-ai-auth')?.value || req.cookies.get('vox-ai-auth-debug')?.value
+    let user = { email: 'test@example.com', role: 'citizen' as 'citizen' | 'ngo' | 'policymaker' }
+
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET)
+        user = payload as any
+      } catch (error) {
+        console.warn('Invalid token, using default user role')
+      }
+    }
+
+    console.log(`Reddit RSS POST from ${user.role} user: ${user.email}`)
 
     // Parse request body
     const body = await req.json()
@@ -71,10 +82,11 @@ export async function POST(req: NextRequest) {
     const result = await rssIntegration.fetchRedditRSSData({
       keyword: keyword.trim(),
       subreddits: subreddits?.filter((s: string) => s.trim().length > 0),
-      maxPosts: maxPosts || 20,
+      maxPosts: maxPosts || 5, // Quality over quantity - max 5 posts
       includeComments: includeComments !== false,
-      maxCommentsPerPost: maxCommentsPerPost || 10,
-      forceRefresh: forceRefresh || false
+      maxCommentsPerPost: maxCommentsPerPost || 2, // Max 2 comments per post
+      forceRefresh: forceRefresh || false,
+      userRole: user.role || 'citizen'
     })
 
     console.log(`Reddit RSS fetch completed: ${result.success ? 'SUCCESS' : 'FAILED'}`)
@@ -111,9 +123,20 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    // Temporarily skip authentication for testing
-    console.log('Reddit RSS GET - Skipping authentication for testing')
-    const user = { email: 'test@example.com' }
+    // Get user from authentication
+    const token = req.cookies.get('vox-ai-auth')?.value || req.cookies.get('vox-ai-auth-debug')?.value
+    let user = { email: 'test@example.com', role: 'citizen' as 'citizen' | 'ngo' | 'policymaker' }
+
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET)
+        user = payload as any
+      } catch (error) {
+        console.warn('Invalid token, using default user role')
+      }
+    }
+
+    console.log(`Reddit RSS GET from ${user.role} user: ${user.email}`)
 
     const { searchParams } = new URL(req.url)
     const action = searchParams.get('action')

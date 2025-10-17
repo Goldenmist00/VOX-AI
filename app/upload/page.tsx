@@ -9,22 +9,10 @@ import {
   Bell,
   User,
   FileUp,
-  Cloud,
   Loader2,
   CheckCircle,
   FileText,
-  Users,
-  BarChart3,
-  Download,
-  Copy,
-  Target,
-  Zap,
-  TrendingUp,
   MessageSquare,
-  Hash,
-  Award,
-  Eye,
-  Sparkles,
   Home,
   LayoutDashboard,
   LogOut
@@ -191,6 +179,12 @@ export default function UploadPage() {
                   <span>Dashboard</span>
                 </a>
               )}
+              {user && (
+                <a href="/profile" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </a>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -199,11 +193,11 @@ export default function UploadPage() {
             </button>
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-gray-300">
+                <a href="/profile" className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
                   <User className="w-4 h-4" />
                   <span>{user.firstName} {user.lastName}</span>
                   <span className="text-gray-500">({user.role})</span>
-                </div>
+                </a>
                 <button
                   onClick={logout}
                   className="group relative cursor-pointer"

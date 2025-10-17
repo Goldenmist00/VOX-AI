@@ -5,6 +5,9 @@ import Keyword from '@/models/Keyword'
 import RedditPost from '@/models/RedditPost'
 import RedditComment from '@/models/RedditComment'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
 export async function GET(req: NextRequest) {

@@ -32,13 +32,16 @@ import {
   Globe,
   Loader2,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import CommentSystem from "../components/CommentSystem"
 import DebateViewModal from "../components/DebateViewModal"
 
 import TrendingKeywords from "@/components/TrendingKeywords"
+import TrendingNGOTopics from "@/components/TrendingNGOTopics"
 import InteractiveRedditPost from "@/components/InteractiveRedditPost"
 
 export default function ForumsPage() {
@@ -99,12 +102,9 @@ export default function ForumsPage() {
     topSubreddits: []
   })
 
-  const leaderboard = [
-    { id: 1, username: "PolicyExpert2024", avatar: "PE", aiScore: 94, clarity: 89, engagement: 97 },
-    { id: 2, username: "CitizenAdvocate", avatar: "CA", aiScore: 88, clarity: 92, engagement: 84 },
-    { id: 3, username: "DebateChampion", avatar: "DC", aiScore: 85, clarity: 87, engagement: 83 },
-    { id: 4, username: "ThoughtLeader", avatar: "TL", aiScore: 82, clarity: 85, engagement: 79 }
-  ]
+  const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true)
+  const [expandedUser, setExpandedUser] = useState<string | null>(null)
 
   const handleJoinDebate = (debateId: string) => {
     // Just open the debate view modal in join mode
@@ -400,6 +400,29 @@ export default function ForumsPage() {
     }
   }
 
+  // Fetch top contributors leaderboard
+  const fetchTopContributors = async () => {
+    try {
+      setLoadingLeaderboard(true)
+      const response = await fetch('/api/top-contributors?limit=10', {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setLeaderboard(data.contributors || [])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching top contributors:', error)
+      // Keep empty array as fallback
+      setLeaderboard([])
+    } finally {
+      setLoadingLeaderboard(false)
+    }
+  }
+
   const handleRedditSearch = async () => {
     if (!redditKeyword.trim()) return
 
@@ -471,22 +494,12 @@ export default function ForumsPage() {
 
         console.log(`Successfully fetched ${data.data.totalStored} Reddit items for "${redditKeyword}"`)
 
-        // Check if quota was exceeded and show appropriate message
-        if (data.message && data.message.includes('quota')) {
-          setQuotaExceeded(true)
-          setRedditError('AI analysis quota exceeded. Showing Reddit data without AI insights.')
-        } else {
-          setQuotaExceeded(false)
-        }
+        // No quota restrictions - AI analysis always enabled when configured
+        setQuotaExceeded(false)
       } else {
-        // Handle quota exceeded errors more gracefully
-        if (data.error && (data.error.includes('quota') || data.error.includes('Too Many Requests'))) {
-          setQuotaExceeded(true)
-          setRedditError('AI analysis quota exceeded. Please try again later or upgrade your plan.')
-        } else {
-          setQuotaExceeded(false)
-          setRedditError(data.error || 'Failed to fetch Reddit data')
-        }
+        // Handle errors without quota restrictions
+        setQuotaExceeded(false)
+        setRedditError(data.error || 'Failed to fetch Reddit data')
       }
     } catch (error) {
       console.error('Error fetching Reddit data:', error)
@@ -522,6 +535,9 @@ export default function ForumsPage() {
   useEffect(() => {
     // Fetch debates from database
     fetchDebates()
+    
+    // Fetch top contributors leaderboard
+    fetchTopContributors()
     
     // Load available keywords and all Reddit posts
     loadAvailableKeywords()
@@ -627,6 +643,12 @@ export default function ForumsPage() {
                   <span>Dashboard</span>
                 </a>
               )}
+              {user && (
+                <a href="/profile" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </a>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -635,11 +657,11 @@ export default function ForumsPage() {
             </button>
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-gray-300">
+                <a href="/profile" className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
                   <User className="w-4 h-4" />
                   <span>{user.firstName} {user.lastName}</span>
                   <span className="text-gray-500">({user.role})</span>
-                </div>
+                </a>
                 <button
                   onClick={logout}
                   className="group relative cursor-pointer"
@@ -791,7 +813,18 @@ export default function ForumsPage() {
 
                       {/* Reddit Keyword Search */}
                       {selectedSource === 'reddit' && (
-                        <div className="space-y-3">
+                        <div className="space-y-6">
+                          {/* Trending NGO Topics */}
+                          <TrendingNGOTopics 
+                            onTopicSelect={(topic) => {
+                              setRedditKeyword(topic)
+                              // Trigger search after setting keyword
+                              setTimeout(() => handleRedditSearch(), 100)
+                            }}
+                            limit={6}
+                          />
+                          
+                          <div className="space-y-3">
                           <div className="flex gap-2">
                             <div className="flex-1 relative">
                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -960,6 +993,7 @@ export default function ForumsPage() {
                           )}
 
 
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1280,42 +1314,270 @@ export default function ForumsPage() {
                   </div>
                 </div>
 
-                {/* Leaderboard */}
+                {/* Clean Top Contributors */}
                 <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Award className="w-5 h-5 text-yellow-400" />
-                    <h3 className="text-lg font-semibold">Top Contributors</h3>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-5 h-5 text-yellow-400" />
+                      <h3 className="text-lg font-semibold">Top Contributors</h3>
+                    </div>
+                    <button
+                      onClick={fetchTopContributors}
+                      disabled={loadingLeaderboard}
+                      className="text-xs text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                      title="Refresh leaderboard"
+                    >
+                      {loadingLeaderboard ? '⟳' : '↻'}
+                    </button>
                   </div>
 
-                  <div className="space-y-3">
-                    {leaderboard.map((user, index) => (
-                      <div key={user.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
-                        <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full text-white font-bold text-sm">
-                          {user.avatar}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-sm">{user.username}</div>
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <Brain className="w-3 h-3" />
-                              {user.aiScore}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" />
-                              {user.clarity}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Zap className="w-3 h-3" />
-                              {user.engagement}
-                            </span>
+                  {/* Contributors List */}
+                  <div className="space-y-1">
+                    {loadingLeaderboard ? (
+                      // Loading state
+                      [...Array(5)].map((_, index) => (
+                        <div key={index} className="flex items-center gap-4 p-4 bg-gray-800/30 rounded-lg animate-pulse">
+                          <div className="w-6 h-6 bg-gray-700 rounded-full"></div>
+                          <div className="w-8 h-8 bg-gray-700 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-700 rounded w-32 mb-1"></div>
+                            <div className="h-3 bg-gray-700 rounded w-20"></div>
                           </div>
+                          <div className="w-4 h-4 bg-gray-700 rounded"></div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-yellow-400">#{index + 1}</div>
-                        </div>
+                      ))
+                    ) : leaderboard.filter(user => {
+                      const username = user.username.toLowerCase()
+                      return !username.includes('deleted') && 
+                             !username.includes('[deleted]') && 
+                             !username.includes('removed') && 
+                             !username.includes('[removed]') &&
+                             username !== 'unknown' &&
+                             username.trim() !== ''
+                    }).length > 0 ? (
+                      // Contributors - filter out deleted users and ensure minimum 5 users
+                      (() => {
+                        const filteredUsers = leaderboard.filter(user => {
+                          // Filter out deleted users
+                          const username = user.username.toLowerCase()
+                          return !username.includes('deleted') && 
+                                 !username.includes('[deleted]') && 
+                                 !username.includes('removed') && 
+                                 !username.includes('[removed]') &&
+                                 username !== 'unknown' &&
+                                 username.trim() !== ''
+                        })
+                        
+                        // Ensure we show at least 5 users (take first 5 after filtering)
+                        return filteredUsers.slice(0, Math.max(5, filteredUsers.length))
+                      })()
+                        .map((user, index) => {
+                        const isExpanded = expandedUser === user.id
+                        const isTop3 = index < 3
+                        const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400']
+                        
+                        return (
+                          <div key={user.id} className="border border-gray-700/50 rounded-lg overflow-hidden">
+                            {/* Main Row */}
+                            <div 
+                              className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${
+                                isExpanded ? 'bg-gray-800/70' : 'bg-gray-800/30 hover:bg-gray-800/50'
+                              }`}
+                              onClick={() => setExpandedUser(isExpanded ? null : user.id)}
+                            >
+                              {/* Rank */}
+                              <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                                isTop3 ? rankColors[index] : 'text-gray-400'
+                              }`}>
+                                #{index + 1}
+                              </div>
+
+                              {/* Avatar */}
+                              <div className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-xs ${
+                                user.isRedditUser 
+                                  ? 'bg-gradient-to-br from-orange-500 to-red-500' 
+                                  : 'bg-gradient-to-br from-blue-500 to-emerald-500'
+                              }`}>
+                                {user.avatar}
+                              </div>
+
+                              {/* Name & Role */}
+                              <div className="flex-1 min-w-0 max-w-none">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium text-white max-w-[200px] truncate">
+                                    {user.isRedditUser 
+                                      ? user.username.replace('u/', '') 
+                                      : user.username
+                                    }
+                                  </span>
+                                  {/* Badges */}
+                                  {user.isRedditUser ? (
+                                    <span className="text-xs px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded">Reddit</span>
+                                  ) : (
+                                    <span className="text-xs px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded capitalize">{user.role}</span>
+                                  )}
+                                  {/* Special indicators - only for registered users */}
+                                  {!user.isRedditUser && (
+                                    <>
+                                      {user.messageEngagement && user.messageEngagement.maxLikesOnSingleMessage > 10 && <span className="text-xs">🔥</span>}
+                                      {user.messageEngagement && user.messageEngagement.avgLikesPerMessage > 3 && <span className="text-xs">⭐</span>}
+                                    </>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  Level {user.level} • {user.aiScore} AI Score
+                                </div>
+                              </div>
+
+                              {/* Dropdown Icon */}
+                              <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              </div>
+                            </div>
+
+                            {/* Expanded Details */}
+                            {isExpanded && (
+                              <div className="px-3 pb-3 bg-gray-800/50 border-t border-gray-700/50">
+                                <div className="grid grid-cols-2 gap-4 mt-3">
+                                  {/* Scores */}
+                                  <div>
+                                    <h5 className="text-xs font-medium text-gray-300 mb-2">Scores</h5>
+                                    <div className="space-y-1 text-xs">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">AI Score:</span>
+                                        <span className="text-white">{user.aiScore}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">Clarity:</span>
+                                        <span className="text-white">{user.clarity}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">Engagement:</span>
+                                        <span className="text-white">{user.engagement}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">Total XP:</span>
+                                        <span className="text-yellow-400">{user.totalXp}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Activity Stats */}
+                                  <div>
+                                    <h5 className="text-xs font-medium text-gray-300 mb-2">Activity</h5>
+                                    {user.isRedditUser ? (
+                                      <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Comments:</span>
+                                          <span className="text-white">{user.redditEngagement.totalComments}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Subreddits:</span>
+                                          <span className="text-white">{user.redditEngagement.subredditCount}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Total Karma:</span>
+                                          <span className="text-orange-400">{user.redditEngagement.totalRedditScore}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Avg Karma:</span>
+                                          <span className="text-orange-400">{user.redditEngagement.avgRedditScore}</span>
+                                        </div>
+                                        {user.redditEngagement.maxRedditScore > 5 && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-400">Best Comment:</span>
+                                            <span className="text-yellow-400">{user.redditEngagement.maxRedditScore} karma</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Messages:</span>
+                                          <span className="text-white">{user.stats.messages}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Debates:</span>
+                                          <span className="text-white">{user.stats.debates}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Uploads:</span>
+                                          <span className="text-white">{user.stats.uploads}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Likes Received:</span>
+                                          <span className="text-emerald-400">{user.stats.likes}</span>
+                                        </div>
+                                        {user.messageEngagement && user.messageEngagement.totalLikes > 0 && (
+                                          <>
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-400">Msg Likes:</span>
+                                              <span className="text-emerald-400">{user.messageEngagement.totalLikes}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-400">Avg Likes:</span>
+                                              <span className="text-emerald-400">{user.messageEngagement.avgLikesPerMessage}</span>
+                                            </div>
+                                            {user.messageEngagement.maxLikesOnSingleMessage > 5 && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-400">Best Message:</span>
+                                                <span className="text-yellow-400">{user.messageEngagement.maxLikesOnSingleMessage} likes</span>
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+                                        {user.stats.streak > 0 && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-400">Streak:</span>
+                                            <span className="text-yellow-400">{user.stats.streak} days</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Join Date */}
+                                <div className="mt-3 pt-2 border-t border-gray-700/30">
+                                  <div className="text-xs text-gray-500">
+                                    {user.isRedditUser ? 'Last Activity' : 'Joined'}: {new Date(user.joinedDate).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })
+                    ) : (
+                      // Empty state
+                      <div className="text-center py-8 text-gray-400">
+                        <Award className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No contributors yet</p>
+                        <p className="text-xs">Start participating to appear here!</p>
                       </div>
-                    ))}
+                    )}
                   </div>
+
+                  {/* Footer */}
+                  {(() => {
+                    const validUsers = leaderboard.filter(user => {
+                      const username = user.username.toLowerCase()
+                      return !username.includes('deleted') && 
+                             !username.includes('[deleted]') && 
+                             !username.includes('removed') && 
+                             !username.includes('[removed]') &&
+                             username !== 'unknown' &&
+                             username.trim() !== ''
+                    })
+                    
+                    return validUsers.length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-gray-700/50 text-xs text-gray-500 text-center">
+                        Showing {Math.min(5, validUsers.length)} of {validUsers.length} contributors • 
+                        {validUsers.filter(u => !u.isRedditUser).length} registered • {validUsers.filter(u => u.isRedditUser).length} reddit
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             </div>

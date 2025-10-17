@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb'
 import Message from '@/models/Message'
 import Debate from '@/models/Debate'
 import User from '@/models/User'
+import GamificationService from '@/lib/gamification-service'
 import { jwtVerify } from 'jose'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
@@ -280,6 +281,9 @@ export async function POST(req: NextRequest) {
     })
 
     await message.save()
+
+    // Handle gamification for new message
+    await GamificationService.handleNewMessage(message._id.toString(), userId)
 
     // Update debate message count
     await Debate.findByIdAndUpdate(debateId, {

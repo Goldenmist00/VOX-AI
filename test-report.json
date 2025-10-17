@@ -1,0 +1,130 @@
+{
+  "timestamp": "2025-10-17T00:55:45.936Z",
+  "summary": {
+    "rssTests": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "apiTests": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "integrationTests": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1
+    }
+  },
+  "details": {
+    "rssTests": [
+      {
+        "keyword": "climate change",
+        "subreddit": "science",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 11040
+      },
+      {
+        "keyword": "climate change",
+        "subreddit": "technology",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 7920
+      },
+      {
+        "keyword": "climate change",
+        "subreddit": "environment",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 10448
+      },
+      {
+        "keyword": "artificial intelligence",
+        "subreddit": "science",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 11784
+      },
+      {
+        "keyword": "artificial intelligence",
+        "subreddit": "technology",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 11126
+      },
+      {
+        "keyword": "artificial intelligence",
+        "subreddit": "environment",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 9597
+      },
+      {
+        "keyword": "renewable energy",
+        "subreddit": "science",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 12167
+      },
+      {
+        "keyword": "renewable energy",
+        "subreddit": "technology",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 10139
+      },
+      {
+        "keyword": "renewable energy",
+        "subreddit": "environment",
+        "success": true,
+        "postsFound": 0,
+        "responseSize": 10668
+      }
+    ],
+    "apiTests": [
+      {
+        "endpoint": "POST /api/reddit-rss",
+        "keyword": "climate change",
+        "success": true,
+        "totalStored": 0,
+        "processingTime": 11728
+      },
+      {
+        "endpoint": "POST /api/reddit-rss",
+        "keyword": "artificial intelligence",
+        "success": true,
+        "totalStored": 12,
+        "processingTime": 8813
+      },
+      {
+        "endpoint": "GET /api/reddit-rss (data)",
+        "keyword": "climate change",
+        "success": true,
+        "itemsRetrieved": 10,
+        "totalCount": 10
+      },
+      {
+        "endpoint": "GET /api/reddit-rss (trending)",
+        "success": true,
+        "trendingCount": 5
+      }
+    ],
+    "integrationTests": [
+      {
+        "test": "Full Integration Flow",
+        "success": false,
+        "error": "timeout of 30000ms exceeded"
+      },
+      {
+        "test": "Performance Test",
+        "success": true,
+        "totalItems": 15,
+        "duration": 11704,
+        "itemsPerSecond": 1.28
+      }
+    ],
+    "errors": []
+  }
+}

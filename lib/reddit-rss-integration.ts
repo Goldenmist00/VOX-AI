@@ -29,6 +29,7 @@ export interface RSSFetchOptions {
   includeComments?: boolean
   maxCommentsPerPost?: number
   forceRefresh?: boolean
+  userRole?: 'citizen' | 'ngo' | 'policymaker'
 }
 
 export class RedditRSSIntegration {
@@ -93,14 +94,15 @@ export class RedditRSSIntegration {
       // Fetch Reddit data via RSS with timeout
       const fetchPromise = this.rssService.fetchRedditData(options.keyword, {
         subreddits: options.subreddits,
-        maxPosts: options.maxPosts || 8, // Further reduced for speed
+        maxPosts: options.maxPosts || 5, // Quality over quantity - max 5 posts
         includeComments: options.includeComments !== false,
-        maxCommentsPerPost: options.maxCommentsPerPost || 3 // Further reduced for speed
+        maxCommentsPerPost: options.maxCommentsPerPost || 2, // Max 2 comments per post
+        userRole: options.userRole || 'citizen'
       })
 
-      // Add 45-second timeout to prevent hanging (increased)
+      // Add 2-minute timeout to allow for AI analysis
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Reddit RSS fetch timeout after 45 seconds')), 45000)
+        setTimeout(() => reject(new Error('Reddit RSS fetch timeout after 2 minutes')), 120000)
       })
 
       const redditData = await Promise.race([fetchPromise, timeoutPromise])
