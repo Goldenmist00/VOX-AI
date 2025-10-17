@@ -40,7 +40,7 @@ export interface IRedditComment extends Document {
     }
     insights: {
       key_points: string[]
-      stance: 'supporting' | 'opposing' | 'neutral' | 'questioning'
+      stance: 'supporting' | 'opposing' | 'neutral' | 'questioning' | 'mixed'
       tone: 'formal' | 'casual' | 'emotional' | 'analytical'
       credibility_indicators: string[]
     }
@@ -217,7 +217,7 @@ const RedditCommentSchema: Schema = new Schema(
         }],
         stance: {
           type: String,
-          enum: ['supporting', 'opposing', 'neutral', 'questioning'],
+          enum: ['supporting', 'opposing', 'neutral', 'questioning', 'mixed'],
           default: 'neutral',
         },
         tone: {

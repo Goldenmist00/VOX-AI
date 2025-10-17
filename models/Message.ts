@@ -36,6 +36,17 @@ export interface IMessage extends Document {
       tone: string
     }
   }
+  // User engagement and priority system
+  engagement: {
+    likes: number
+    dislikes: number
+    replies: number
+    views: number
+  }
+  userLevel: number // User's level when posting
+  userAchievements: string[] // User's achievements when posting
+  priorityScore: number // Calculated priority based on user level + achievements + engagement
+  xpAwarded: number // XP awarded to user for this message
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -180,6 +191,48 @@ const MessageSchema: Schema = new Schema(
         },
       },
     },
+    // User engagement and priority system
+    engagement: {
+      likes: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      dislikes: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      replies: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      views: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+    },
+    userLevel: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    userAchievements: [{
+      type: String,
+      trim: true,
+    }],
+    priorityScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    xpAwarded: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -193,6 +246,9 @@ MessageSchema.index({ debateId: 1, createdAt: -1 })
 MessageSchema.index({ author: 1, createdAt: -1 })
 MessageSchema.index({ 'analysis.sentiment.overall': 1 })
 MessageSchema.index({ isActive: 1 })
+MessageSchema.index({ priorityScore: -1, createdAt: -1 }) // For priority-based sorting
+MessageSchema.index({ userLevel: -1 }) // For level-based queries
+MessageSchema.index({ 'engagement.likes': -1 }) // For popular messages
 
 const Message = mongoose.models.Message || mongoose.model<IMessage>('Message', MessageSchema)
 

@@ -277,6 +277,13 @@ export default function VoxLanding() {
                     <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-purple-400 transition-all duration-300 group-hover:w-full" />
                   </a>
                 )}
+                {user && (
+                  <a href="/profile" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                    <span className="absolute bottom-[-2px] left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full" />
+                  </a>
+                )}
               </>
             )}
             <a href="#how" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors relative group px-3 py-2 rounded-lg hover:bg-gray-800/50">
@@ -287,11 +294,11 @@ export default function VoxLanding() {
           </div>
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-300">
+              <a href="/profile" className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800/50">
                 <User className="w-4 h-4" />
                 <span>{user?.firstName} {user?.lastName}</span>
                 <span className="text-gray-500">({user?.role})</span>
-              </div>
+              </a>
               <button
                 onClick={logout}
                 className="group relative cursor-pointer"
