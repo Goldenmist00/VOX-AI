@@ -254,36 +254,44 @@ export default function DebateViewModal({ debate, isOpen, onClose, mode = 'view'
     setNewComment('')
     setIsSubmitting(false)
     
-    // Analyze in background and update when ready
+    // Save comment to database and get analysis
     try {
-      const response = await fetch('/api/analyze-comment', {
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
-          comment: commentContent,
-          debateTitle: debate?.title || 'General Discussion'
+          content: commentContent,
+          debateId: debate?.id,
+          debateTopic: debate?.title || 'General Discussion'
         })
       })
 
       if (response.ok) {
-        const { analysis } = await response.json()
+        const data = await response.json()
         
-        // Update the comment with real analysis
+        // Update the comment with real data from database
         setComments(prev => prev.map(comment => 
           comment.id === commentId 
-            ? { ...comment, analysis: { ...analysis, isAnalyzing: false } }
+            ? { 
+                ...comment, 
+                id: data.data._id, // Use the real database ID
+                author: data.data.author?.firstName ? `${data.data.author.firstName} ${data.data.author.lastName}` : "You",
+                analysis: { ...data.data.analysis, isAnalyzing: false } 
+              }
             : comment
         ))
         
-        console.log('Comment analysis completed!')
+        console.log('Comment saved to database and analysis completed!')
       } else {
-        throw new Error(`Analysis failed: ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || `Failed to save comment: ${response.status}`)
       }
       
     } catch (error) {
-      console.error('Error analyzing comment:', error)
+      console.error('Error saving comment:', error)
       
       // Update with fallback analysis if Gemini fails
       const fallbackAnalysis = {
