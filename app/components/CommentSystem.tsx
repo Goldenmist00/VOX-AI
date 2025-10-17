@@ -15,6 +15,7 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react"
+import { toast } from 'sonner'
 
 interface Comment {
   id: string
@@ -144,7 +145,9 @@ export default function CommentSystem({ debateId, debateTopic, isJoined, onComme
     } catch (error) {
       console.error('Error saving comment:', error)
       // Show error to user but don't add comment to local state
-      alert(error instanceof Error ? error.message : 'Failed to save comment. Please try again.')
+      toast.error('Failed to save comment', {
+        description: error instanceof Error ? error.message : 'Please try again.'
+      })
     } finally {
       setIsAnalyzing(false)
     }

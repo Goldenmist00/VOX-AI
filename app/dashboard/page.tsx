@@ -43,6 +43,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import IntegrationStatus from "@/components/IntegrationStatus"
+import { toast } from 'sonner'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -148,11 +149,15 @@ export default function DashboardPage() {
         setCampaignPlan(data.campaignPlan)
         setShowCampaignPlan(true)
       } else {
-        alert('Failed to generate campaign plan. Please try again.')
+        toast.error('Failed to generate campaign plan', {
+          description: 'Please try again.'
+        })
       }
     } catch (err) {
       console.error('Error generating campaign plan:', err)
-      alert('Error generating campaign plan')
+      toast.error('Error generating campaign plan', {
+        description: 'An error occurred. Please try again.'
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -183,11 +188,15 @@ export default function DashboardPage() {
         setPolicyBrief(data.policyBrief)
         setShowPolicyBrief(true)
       } else {
-        alert('Failed to generate policy brief. Please try again.')
+        toast.error('Failed to generate policy brief', {
+          description: 'Please try again.'
+        })
       }
     } catch (err) {
       console.error('Error generating policy brief:', err)
-      alert('Error generating policy brief')
+      toast.error('Error generating policy brief', {
+        description: 'An error occurred. Please try again.'
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -332,7 +341,9 @@ export default function DashboardPage() {
     )
 
     if (alreadyAdopted) {
-      alert('You have already adopted this issue!')
+      toast.warning('Already adopted', {
+        description: 'You have already adopted this issue.'
+      })
       return
     }
 
@@ -369,11 +380,15 @@ export default function DashboardPage() {
         const plan = userRole === 'ngo' ? data.campaignPlan : data.policyBrief
         setGeneratedPlan(plan)
       } else {
-        alert('Failed to generate action plan. You can still adopt the issue.')
+        toast.warning('Plan generation incomplete', {
+          description: 'Failed to generate action plan. You can still adopt the issue.'
+        })
       }
     } catch (err) {
       console.error('Error generating plan:', err)
-      alert('Error generating action plan. You can still adopt the issue.')
+      toast.warning('Plan generation error', {
+        description: 'Error generating action plan. You can still adopt the issue.'
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -400,18 +415,25 @@ export default function DashboardPage() {
       })
 
       if (response.ok) {
-        alert('Issue adopted successfully with action plan!')
+        toast.success('Issue adopted successfully!', {
+          description: 'The issue and action plan have been added to your dashboard.',
+          duration: 4000
+        })
         setShowAdoptModal(false)
         setAdoptIssueData(null)
         setGeneratedPlan(null)
         fetchAdoptedIssues() // Refresh the list
       } else {
         const errorData = await response.json()
-        alert(errorData.error || 'Failed to adopt issue')
+        toast.error('Failed to adopt issue', {
+          description: errorData.error || 'Please try again.'
+        })
       }
     } catch (err) {
       console.error('Error adopting issue:', err)
-      alert('Error adopting issue')
+      toast.error('Error adopting issue', {
+        description: 'An error occurred. Please try again.'
+      })
     } finally {
       setIsAdopting(false)
     }
@@ -986,7 +1008,9 @@ export default function DashboardPage() {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(JSON.stringify(campaignPlan, null, 2))
-                  alert('Campaign plan copied to clipboard!')
+                  toast.success('Copied to clipboard!', {
+                    description: 'Campaign plan has been copied.'
+                  })
                 }}
                 className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-6 py-3 rounded-lg hover:bg-emerald-500/30 transition-colors"
               >
@@ -1131,7 +1155,9 @@ export default function DashboardPage() {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(JSON.stringify(policyBrief, null, 2))
-                  alert('Policy brief copied to clipboard!')
+                  toast.success('Copied to clipboard!', {
+                    description: 'Policy brief has been copied.'
+                  })
                 }}
                 className="flex items-center gap-2 bg-gray-700/50 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
               >
@@ -1288,7 +1314,9 @@ export default function DashboardPage() {
                   <button 
                     onClick={() => {
                       navigator.clipboard.writeText(JSON.stringify(generatedPlan, null, 2))
-                      alert('Plan copied to clipboard!')
+                      toast.success('Copied to clipboard!', {
+                        description: 'Plan has been copied.'
+                      })
                     }}
                     className="flex items-center gap-2 bg-gray-700/50 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
                   >

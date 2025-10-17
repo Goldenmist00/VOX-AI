@@ -35,6 +35,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import jsPDF from 'jspdf'
+import { toast } from 'sonner'
 
 function AnalysisContent() {
   const router = useRouter()
@@ -221,9 +222,14 @@ function AnalysisContent() {
       
       // Save the PDF
       doc.save(`action-plan-${Date.now()}.pdf`)
+      toast.success('PDF exported successfully!', {
+        description: 'Your action plan has been downloaded.'
+      })
     } catch (err) {
       console.error('Failed to export PDF:', err)
-      alert('Failed to export PDF. Please try again.')
+      toast.error('Failed to export PDF', {
+        description: 'Please try again or check your browser settings.'
+      })
     } finally {
       setIsExporting(false)
     }
@@ -260,15 +266,22 @@ function AnalysisContent() {
       const data = await response.json()
       
       // Show success message
-      alert('Action plan added to dashboard successfully!')
+      toast.success('Added to dashboard!', {
+        description: 'Your action plan has been saved to your dashboard.',
+        duration: 3000
+      })
       
-      // Redirect to dashboard
-      if (user?.role === 'ngo' || user?.role === 'policymaker') {
-        router.push('/dashboard')
-      }
+      // Redirect to dashboard after a brief delay
+      setTimeout(() => {
+        if (user?.role === 'ngo' || user?.role === 'policymaker') {
+          router.push('/dashboard')
+        }
+      }, 1000)
     } catch (err) {
       console.error('Failed to add to dashboard:', err)
-      alert('Failed to add to dashboard. Please try again.')
+      toast.error('Failed to add to dashboard', {
+        description: err instanceof Error ? err.message : 'Please try again.'
+      })
     } finally {
       setIsAddingToDashboard(false)
     }
