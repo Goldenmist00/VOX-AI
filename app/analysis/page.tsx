@@ -30,9 +30,11 @@ import {
   Home,
   Upload,
   LayoutDashboard,
-  LogOut
+  LogOut,
+  Loader2
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import jsPDF from 'jspdf'
 
 function AnalysisContent() {
   const router = useRouter()
@@ -45,6 +47,8 @@ function AnalysisContent() {
   const [analysisResults, setAnalysisResults] = useState<any>(null)
   const [actionPlan, setActionPlan] = useState<any[]>([])
   const [isGeneratingActionPlan, setIsGeneratingActionPlan] = useState(false)
+  const [isAddingToDashboard, setIsAddingToDashboard] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Load analysis data from API
   useEffect(() => {
@@ -153,6 +157,120 @@ function AnalysisContent() {
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
+    }
+  }
+
+  const exportActionPlanAsPDF = async () => {
+    if (!actionPlan || actionPlan.length === 0) return
+    
+    setIsExporting(true)
+    try {
+      const doc = new jsPDF()
+      
+      // Title
+      doc.setFontSize(20)
+      doc.setTextColor(37, 99, 235) // Blue color
+      doc.text('AI Action Plan', 20, 20)
+      
+      // Topic
+      doc.setFontSize(12)
+      doc.setTextColor(0, 0, 0)
+      doc.text(`Topic: ${analysisResults?.topic?.title || 'Action Plan'}`, 20, 35)
+      
+      // Date
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 42)
+      
+      let yPosition = 55
+      
+      // Action plan steps
+      actionPlan.forEach((step, index) => {
+        // Check if we need a new page
+        if (yPosition > 250) {
+          doc.addPage()
+          yPosition = 20
+        }
+        
+        // Step number and title
+        doc.setFontSize(14)
+        doc.setTextColor(37, 99, 235) // Blue color
+        doc.text(`Step ${step.step}: ${step.title}`, 20, yPosition)
+        yPosition += 8
+        
+        // Description
+        doc.setFontSize(10)
+        doc.setTextColor(0, 0, 0)
+        const descriptionLines = doc.splitTextToSize(step.description, 170)
+        doc.text(descriptionLines, 20, yPosition)
+        yPosition += (descriptionLines.length * 5) + 3
+        
+        // Timeline
+        doc.setTextColor(100, 100, 100)
+        doc.text(`Timeline: ${step.timeline}`, 20, yPosition)
+        yPosition += 5
+        
+        // Resources
+        if (step.resources && step.resources.length > 0) {
+          doc.text(`Resources: ${step.resources.join(', ')}`, 20, yPosition)
+          yPosition += 8
+        }
+        
+        yPosition += 5 // Add spacing between steps
+      })
+      
+      // Save the PDF
+      doc.save(`action-plan-${Date.now()}.pdf`)
+    } catch (err) {
+      console.error('Failed to export PDF:', err)
+      alert('Failed to export PDF. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const addToDashboard = async () => {
+    if (!analysisResults || !actionPlan || actionPlan.length === 0) return
+    
+    setIsAddingToDashboard(true)
+    try {
+      // Create a debate entry from the analysis
+      const response = await fetch('/api/debates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: analysisResults.topic.title,
+          description: analysisResults.summary,
+          tags: analysisResults.topic.category || 'General', // Send as string, not array
+          sentiment: {
+            positive: analysisResults.sentiment.positive,
+            neutral: analysisResults.sentiment.neutral,
+            negative: analysisResults.sentiment.negative
+          }
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to add to dashboard')
+      }
+      
+      const data = await response.json()
+      
+      // Show success message
+      alert('Action plan added to dashboard successfully!')
+      
+      // Redirect to dashboard
+      if (user?.role === 'ngo' || user?.role === 'policymaker') {
+        router.push('/dashboard')
+      }
+    } catch (err) {
+      console.error('Failed to add to dashboard:', err)
+      alert('Failed to add to dashboard. Please try again.')
+    } finally {
+      setIsAddingToDashboard(false)
     }
   }
 
@@ -678,14 +796,16 @@ function AnalysisContent() {
                 </div>
 
                 {/* Action Buttons */}
-                {user && (user.role === "ngo" || user.role === "policymaker") && (
+                {user ? (
                   <div className="bg-gray-950 border border-gray-700 rounded-lg p-6">
                     <h3 className="text-lg font-bold mb-4">Take Action</h3>
                     <div className="space-y-3">
-                      <button className="w-full flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg hover:bg-emerald-500/30 transition-colors">
-                        <Target className="w-5 h-5 text-white" />
-                        🔹 Adopt This Issue
-                      </button>
+                      {(user.role === "ngo" || user.role === "policymaker") && (
+                        <button className="w-full flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg hover:bg-emerald-500/30 transition-colors">
+                          <Target className="w-5 h-5 text-white" />
+                          🔹 Adopt This Issue
+                        </button>
+                      )}
                       <button 
                         onClick={generateActionPlan}
                         disabled={isGeneratingActionPlan}
@@ -703,6 +823,31 @@ function AnalysisContent() {
                           </>
                         )}
                       </button>
+                    </div>
+                    
+                    {user.role === "citizen" && (
+                      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <p className="text-xs text-blue-300">
+                          💡 Export and share your action plan with NGOs or policymakers to drive change!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-gray-950 border border-gray-700 rounded-lg p-6">
+                    <h3 className="text-lg font-bold mb-4">Take Action</h3>
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg text-center">
+                      <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+                      <p className="text-sm text-gray-300 mb-4">
+                        Login to generate AI-powered action plans and collaborate with your community!
+                      </p>
+                      <a
+                        href="/login"
+                        className="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                      >
+                        <User className="w-4 h-4" />
+                        Login to Continue
+                      </a>
                     </div>
                   </div>
                 )}
@@ -751,15 +896,52 @@ function AnalysisContent() {
             </div>
             
             <div className="flex gap-3 mt-8">
-              <button className="flex items-center gap-2 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
-                <Download className="w-5 h-5 text-white" />
-                Export Plan
+              <button 
+                onClick={exportActionPlanAsPDF}
+                disabled={isExporting}
+                className="flex-1 flex items-center justify-center gap-2 bg-gray-700 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5 text-white" />
+                    Export as PDF
+                  </>
+                )}
               </button>
-              <button className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-6 py-3 rounded-lg hover:bg-emerald-500/30 transition-colors">
-                <Target className="w-5 h-5 text-white" />
-                Add to Dashboard
-              </button>
+              {user && (user.role === "ngo" || user.role === "policymaker") && (
+                <button 
+                  onClick={addToDashboard}
+                  disabled={isAddingToDashboard}
+                  className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-400 px-6 py-3 rounded-lg hover:bg-emerald-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAddingToDashboard ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin text-white" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Target className="w-5 h-5 text-white" />
+                      Add to Dashboard
+                    </>
+                  )}
+                </button>
+              )}
             </div>
+            
+            {user && user.role === "citizen" && (
+              <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-sm text-blue-300 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  <span>You can export this action plan as PDF and share it with NGOs or policymakers to help drive change!</span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -74,6 +74,8 @@ export default function ProfilePage() {
 
   const [loading, setLoading] = useState(true)
   const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [adoptedIssues, setAdoptedIssues] = useState<any[]>([])
+  const [loadingAdoptedIssues, setLoadingAdoptedIssues] = useState(false)
 
   const [achievements, setAchievements] = useState<any[]>([
     // Default achievements for testing - will be replaced by API data
@@ -88,6 +90,29 @@ export default function ProfilePage() {
       unlockedDate: new Date().toISOString()
     }
   ])
+
+  // Fetch adopted issues for NGO/policymaker users
+  const fetchAdoptedIssues = async () => {
+    if (!user || !['ngo', 'policymaker'].includes(user.role)) {
+      return
+    }
+
+    try {
+      setLoadingAdoptedIssues(true)
+      const response = await fetch('/api/dashboard/adopt-issue', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        setAdoptedIssues(data.adoptedIssues || [])
+      }
+    } catch (error) {
+      console.error('Error fetching adopted issues:', error)
+    } finally {
+      setLoadingAdoptedIssues(false)
+    }
+  }
 
   // Fetch user profile data function
   const fetchProfileData = async () => {
@@ -171,6 +196,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       fetchProfileData()
+      fetchAdoptedIssues()
     }
   }, [user])
 
@@ -480,6 +506,7 @@ export default function ProfilePage() {
                 { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
                 { id: 'achievements', label: 'Achievements', icon: <Trophy className="w-4 h-4" /> },
                 { id: 'activity', label: 'Activity', icon: <Activity className="w-4 h-4" /> },
+                ...(user?.role === 'ngo' || user?.role === 'policymaker' ? [{ id: 'adopted-issues', label: 'Adopted Issues', icon: <Heart className="w-4 h-4" /> }] : []),
                 { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> }
               ].map((tab) => (
                 <button
@@ -652,6 +679,210 @@ export default function ProfilePage() {
                     <p>No recent activity found. Start participating in debates to see your activity here!</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'adopted-issues' && (
+              <div className="space-y-6">
+                <div className="bg-gray-950/60 border border-gray-700 rounded-lg p-6">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-emerald-400" />
+                    Your Adopted Issues
+                  </h3>
+
+                  {loadingAdoptedIssues ? (
+                    <div className="space-y-4">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="animate-pulse p-6 bg-gray-800/50 rounded-lg">
+                          <div className="h-6 bg-gray-700 rounded w-3/4 mb-3"></div>
+                          <div className="h-4 bg-gray-700 rounded w-1/2 mb-3"></div>
+                          <div className="h-2 bg-gray-700 rounded w-full"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : adoptedIssues.length > 0 ? (
+                    <div className="space-y-6">
+                      {adoptedIssues.map((issue) => {
+                        const totalMilestones = issue.progress?.milestones?.length || 0
+                        const completedMilestones = issue.progress?.milestones?.filter((m: any) => m.completed).length || 0
+                        const progressPercentage = totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0
+
+                        // Get status color
+                        const getStatusColor = (status: string) => {
+                          switch(status) {
+                            case 'active': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            case 'in_progress': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                            case 'completed': return 'bg-green-500/10 text-green-400 border-green-500/20'
+                            case 'on_hold': return 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                            default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                          }
+                        }
+
+                        return (
+                          <div key={issue._id} className="bg-gray-800/30 border border-gray-700 rounded-lg p-6 hover:border-gray-600 transition-all">
+                            {/* Header */}
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex-1">
+                                <h4 className="text-xl font-bold text-white mb-2">
+                                  {issue.debateId?.title || 'Untitled Issue'}
+                                </h4>
+                                <p className="text-gray-400 text-sm mb-3">
+                                  {issue.debateId?.description || 'No description available'}
+                                </p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(issue.status)}`}>
+                                    {issue.status.charAt(0).toUpperCase() + issue.status.slice(1).replace('_', ' ')}
+                                  </span>
+                                  {issue.organizationName && (
+                                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                      {issue.organizationName}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-500">
+                                    Adopted on {new Date(issue.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Progress Section */}
+                            <div className="mb-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-300">Progress</span>
+                                <span className="text-sm text-gray-400">
+                                  {completedMilestones} / {totalMilestones} milestones completed
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+                                <div 
+                                  className={`h-3 rounded-full transition-all duration-500 ${
+                                    progressPercentage === 100 
+                                      ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                      : progressPercentage >= 50
+                                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                                      : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                                  }`}
+                                  style={{ width: `${progressPercentage}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>0%</span>
+                                <span className="font-medium text-white">{progressPercentage.toFixed(0)}%</span>
+                                <span>100%</span>
+                              </div>
+                            </div>
+
+                            {/* Milestones */}
+                            {totalMilestones > 0 && (
+                              <div className="mb-4">
+                                <h5 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                                  <Check className="w-4 h-4" />
+                                  Milestones
+                                </h5>
+                                <div className="space-y-2">
+                                  {issue.progress.milestones.map((milestone: any, index: number) => (
+                                    <div key={index} className="flex items-center gap-2 text-sm">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                                        milestone.completed 
+                                          ? 'bg-green-500 border-green-500' 
+                                          : 'border-gray-600 bg-transparent'
+                                      }`}>
+                                        {milestone.completed && <Check className="w-3 h-3 text-white" />}
+                                      </div>
+                                      <span className={milestone.completed ? 'text-gray-300 line-through' : 'text-gray-400'}>
+                                        {milestone.title}
+                                      </span>
+                                      {milestone.completed && milestone.completedAt && (
+                                        <span className="text-xs text-green-400">
+                                          ({new Date(milestone.completedAt).toLocaleDateString()})
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Recent Updates */}
+                            {issue.progress?.updates && issue.progress.updates.length > 0 && (
+                              <div>
+                                <h5 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                                  <Activity className="w-4 h-4" />
+                                  Recent Updates
+                                </h5>
+                                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                  {issue.progress.updates.slice(-5).reverse().map((update: any, index: number) => (
+                                    <div key={index} className="flex items-start gap-2 text-sm p-2 bg-gray-800/50 rounded">
+                                      <div className="w-2 h-2 bg-blue-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                      <div className="flex-1">
+                                        <p className="text-gray-300">{update.update}</p>
+                                        <span className="text-xs text-gray-500">
+                                          {new Date(update.createdAt).toLocaleString()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="mt-4 pt-4 border-t border-gray-700 flex gap-2">
+                              <button
+                                onClick={() => window.location.href = '/dashboard'}
+                                className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+                              >
+                                View Details
+                              </button>
+                              {issue.campaignPlan && (
+                                <button
+                                  onClick={() => {
+                                    const blob = new Blob([typeof issue.campaignPlan === 'string' ? issue.campaignPlan : JSON.stringify(issue.campaignPlan, null, 2)], { type: 'text/plain' })
+                                    const url = URL.createObjectURL(blob)
+                                    const a = document.createElement('a')
+                                    a.href = url
+                                    a.download = `campaign-plan-${issue.debateId?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`
+                                    a.click()
+                                  }}
+                                  className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-colors text-sm"
+                                >
+                                  Download Plan
+                                </button>
+                              )}
+                              {issue.policyBrief && (
+                                <button
+                                  onClick={() => {
+                                    const blob = new Blob([typeof issue.policyBrief === 'string' ? issue.policyBrief : JSON.stringify(issue.policyBrief, null, 2)], { type: 'text/plain' })
+                                    const url = URL.createObjectURL(blob)
+                                    const a = document.createElement('a')
+                                    a.href = url
+                                    a.download = `policy-brief-${issue.debateId?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`
+                                    a.click()
+                                  }}
+                                  className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors text-sm"
+                                >
+                                  Download Brief
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-400">
+                      <Heart className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg mb-2">No adopted issues yet</p>
+                      <p className="text-sm">Visit the dashboard to adopt issues and start making an impact!</p>
+                      <button
+                        onClick={() => window.location.href = '/dashboard'}
+                        className="mt-4 px-6 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                      >
+                        Go to Dashboard
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

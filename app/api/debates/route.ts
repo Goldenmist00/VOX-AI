@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     const userId = (payload as any).userId
 
-    const { title, description, tags } = await req.json()
+    const { title, description, tags, sentiment } = await req.json()
 
     // Validation
     if (!title || !description) {
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       createdBy: userId,
       participants: 0,
       messages: 0,
-      sentiment: { positive: 0, negative: 0, neutral: 100 },
+      sentiment: sentiment || { positive: 0, negative: 0, neutral: 100 },
       activity: 'low',
       aiScore: 0,
       trending: false,
