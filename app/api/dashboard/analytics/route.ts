@@ -117,16 +117,30 @@ export async function GET(req: NextRequest) {
           const avgNeutral = messagesWithAuthors.reduce((sum, msg) => 
             sum + (msg.analysis?.sentiment?.neutral_score || 0), 0) / messagesWithAuthors.length
 
+          // Normalize sentiment scores to ensure they add up to 100%
+          const totalSentiment = avgPositive + avgNegative + avgNeutral
+          let normalizedPositive = 0
+          let normalizedNegative = 0
+          let normalizedNeutral = 0
+          
+          if (totalSentiment > 0) {
+            normalizedPositive = (avgPositive / totalSentiment) * 100
+            normalizedNegative = (avgNegative / totalSentiment) * 100
+            normalizedNeutral = (avgNeutral / totalSentiment) * 100
+          } else {
+            // Default to neutral if no sentiment data
+            normalizedNeutral = 100
+          }
+
           // High consensus = strong agreement in one direction
-          // Calculate standard deviation of sentiments
-          const maxSentiment = Math.max(avgPositive, avgNegative, avgNeutral)
+          const maxSentiment = Math.max(normalizedPositive, normalizedNegative, normalizedNeutral)
           consensusScore = Math.round(maxSentiment)
 
-          // Update debate sentiment
+          // Update debate sentiment with normalized values
           debate.sentiment = {
-            positive: Math.round(avgPositive),
-            negative: Math.round(avgNegative),
-            neutral: Math.round(avgNeutral)
+            positive: Math.round(normalizedPositive),
+            negative: Math.round(normalizedNegative),
+            neutral: Math.round(normalizedNeutral)
           }
         }
 
