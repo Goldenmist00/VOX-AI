@@ -2,17 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
+    // Create response
     const response = NextResponse.json(
-      { message: 'Logout successful' },
+      { message: 'Logged out successfully' },
       { status: 200 }
     )
 
-    // Clear the auth token cookie
+    // Clear authentication cookies
     response.cookies.set('vox-ai-auth', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax',
-      maxAge: 0 // Expire immediately
+      maxAge: 0,
+      path: '/'
+    })
+
+    response.cookies.set('vox-ai-auth-debug', '', {
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/'
     })
 
     return response

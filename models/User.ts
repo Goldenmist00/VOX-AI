@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose'
+import bcrypt from 'bcryptjs'
 
 export interface IUser extends Document {
   firstName: string
@@ -44,6 +45,9 @@ export interface IUser extends Document {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+  
+  // Methods
+  comparePassword(candidatePassword: string): Promise<boolean>
 }
 
 const UserSchema: Schema = new Schema(
@@ -196,6 +200,29 @@ const UserSchema: Schema = new Schema(
   },
   { timestamps: true }
 )
+
+// Password hashing middleware
+UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next()
+  
+  try {
+    const salt = await bcrypt.genSalt(12)
+    this.password = await bcrypt.hash(this.password, salt)
+    next()
+  } catch (error) {
+    next(error as Error)
+  }
+})
+
+// Password comparison method
+UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password)
+  } catch (error) {
+    console.error('Error comparing passwords:', error)
+    return false
+  }
+}
 
 // Indexes for better performance
 UserSchema.index({ email: 1 })
